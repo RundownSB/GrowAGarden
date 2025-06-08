@@ -62,7 +62,7 @@ local function purchaseItems()
     StatusLabel.Text = "Buying..."
 
     for i = 1, 4 do
-        if not running or (not autoBuying and AutoButton.Text == "Auto Buy: ON") then break end
+        if not running then break end
 
         local args = { "AuraEggMerchant", i }
         local success = pcall(function()
@@ -102,11 +102,19 @@ local AutoConnection = AutoButton.MouseButton1Click:Connect(function()
     end
 end)
 
-local CloseConnection = CloseButton.MouseButton1Click:Connect(function()
+local CloseConnection
+
+CloseConnection = CloseButton.MouseButton1Click:Connect(function()
+    -- Destroy GUI immediately
+    if ScreenGui and ScreenGui.Parent then
+        ScreenGui:Destroy()
+    end
+
+    -- Stop all activity and disconnect events
     running = false
     autoBuying = false
-    BuyConnection:Disconnect()
-    AutoConnection:Disconnect()
-    CloseConnection:Disconnect()
-    ScreenGui:Destroy()
+    
+    if BuyConnection then BuyConnection:Disconnect() end
+    if AutoConnection then AutoConnection:Disconnect() end
+    if CloseConnection then CloseConnection:Disconnect() end
 end)
