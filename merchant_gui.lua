@@ -1,5 +1,6 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -168,13 +169,12 @@ ShowButton.MouseButton1Click:Connect(function()
 	ShowButton.Visible = false
 end)
 
--- Make ShowButton draggable
-local UserInputService = game:GetService("UserInputService")
-local dragToggle = false
+-- Make ShowButton draggable on PC + Mobile
+local dragging = false
 local dragInput, dragStart, startPos
 
 local function updateDrag(input)
-	if dragToggle and input.Position and dragStart then
+	if dragging and input.Position and dragStart then
 		local delta = input.Position - dragStart
 		ShowButton.Position = UDim2.new(
 			startPos.X.Scale,
@@ -187,13 +187,13 @@ end
 
 ShowButton.InputBegan:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-		dragToggle = true
+		dragging = true
 		dragStart = input.Position
 		startPos = ShowButton.Position
 
 		input.Changed:Connect(function()
 			if input.UserInputState == Enum.UserInputState.End then
-				dragToggle = false
+				dragging = false
 			end
 		end)
 	end
