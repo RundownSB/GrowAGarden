@@ -132,9 +132,8 @@ local function autoBuyAuraShards()
 			if not success then
 				warn("Aura Shards AutoBuy error: ", err)
 			end
-			wait(0.5)
 		end
-		wait(3)
+		wait(1) -- delay after all 10 purchases
 	end
 end
 
