@@ -76,7 +76,7 @@ Button3.Parent = MainFrame
 -- Hide Button (on top-right under green bar)
 local HideButton = Instance.new("TextButton")
 HideButton.Size = UDim2.new(0, 137, 0, 32)
-HideButton.Position = UDim2.new(1, -145, 0, 0) -- top-right corner inside label
+HideButton.Position = UDim2.new(1, -145, 0, 0)
 HideButton.BackgroundColor3 = Color3.fromRGB(87, 77, 76)
 HideButton.Text = "Hide"
 HideButton.TextColor3 = Color3.new(1, 1, 1)
@@ -166,4 +166,41 @@ end)
 ShowButton.MouseButton1Click:Connect(function()
 	MainFrame.Visible = true
 	ShowButton.Visible = false
+end)
+
+-- Make ShowButton draggable
+local UserInputService = game:GetService("UserInputService")
+local dragToggle = false
+local dragInput, dragStart, startPos
+
+ShowButton.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragToggle = true
+		dragStart = input.Position
+		startPos = ShowButton.Position
+
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragToggle = false
+			end
+		end)
+	end
+end)
+
+ShowButton.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement then
+		dragInput = input
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if input == dragInput and dragToggle then
+		local delta = input.Position - dragStart
+		ShowButton.Position = UDim2.new(
+			startPos.X.Scale,
+			startPos.X.Offset + delta.X,
+			startPos.Y.Scale,
+			startPos.Y.Offset + delta.Y
+		)
+	end
 end)
