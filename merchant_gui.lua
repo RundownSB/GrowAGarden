@@ -104,7 +104,7 @@ local toggle2 = false
 -- Auto Buy functions
 local function autoBuyAuraEgg()
 	while toggle1 do
-		for i = 1, 5 do
+		for i = 1, 4 do
     local args = { "AuraEggMerchant", i }
     local success, err = pcall(function()
         ReplicatedStorage:WaitForChild("Network")
