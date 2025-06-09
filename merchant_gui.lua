@@ -1,310 +1,169 @@
 local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "ToggleableDraggableGUI"
-screenGui.Parent = playerGui
-screenGui.ResetOnSpawn = false
+-- Create GUI container
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "CustomGUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = playerGui
 
--- Main frame (holds all content except Show/Hide)
-local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0.35, 0, 0.45, 0)  -- increased height for tabs + content
-mainFrame.AnchorPoint = Vector2.new(0.5, 0)
-mainFrame.Position = UDim2.new(0.5, 0, 0.15, 0) -- top-center-ish
-mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-mainFrame.BorderSizePixel = 0
-mainFrame.Parent = screenGui
+-- Main Frame
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 528, 0, 327)
+MainFrame.Position = UDim2.new(0.247, 0, 0.139, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(39, 39, 39)
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
 
-local cornerMain = Instance.new("UICorner")
-cornerMain.CornerRadius = UDim.new(0, 12)
-cornerMain.Parent = mainFrame
+-- Label 1: Pets Go Event
+local Label1 = Instance.new("TextLabel")
+Label1.Size = UDim2.new(0, 528, 0, 32)
+Label1.Position = UDim2.new(0, 0, 0, 0)
+Label1.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+Label1.Text = "Pets Go Event"
+Label1.TextColor3 = Color3.new(1, 1, 1)
+Label1.Font = Enum.Font.SourceSansBold
+Label1.TextSize = 24
+Label1.Parent = MainFrame
 
--- Close button top-right of mainFrame
-local closeButton = Instance.new("TextButton")
-closeButton.Text = "✖"
-closeButton.Size = UDim2.new(0, 30, 0, 30)
-closeButton.AnchorPoint = Vector2.new(1, 0)
-closeButton.Position = UDim2.new(1, -10, 0, 10)
-closeButton.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
-closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-closeButton.Font = Enum.Font.SourceSansBold
-closeButton.TextScaled = true
-closeButton.Parent = mainFrame
+-- Label 2: Auto Buy Aura Egg
+local Label2 = Instance.new("TextLabel")
+Label2.Size = UDim2.new(0, 282, 0, 50)
+Label2.Position = UDim2.new(0, 0, 0, 70)
+Label2.BackgroundColor3 = Color3.fromRGB(87, 77, 76)
+Label2.Text = "Auto Buy Aura Egg"
+Label2.TextColor3 = Color3.new(1, 1, 1)
+Label2.Font = Enum.Font.SourceSans
+Label2.TextSize = 20
+Label2.Parent = MainFrame
 
-closeButton.MouseButton1Click:Connect(function()
-    if screenGui and screenGui.Parent then
-        screenGui:Destroy()
-    end
-end)
+-- Label 3: Auto Buy Aura Shards
+local Label3 = Instance.new("TextLabel")
+Label3.Size = UDim2.new(0, 281, 0, 50)
+Label3.Position = UDim2.new(0, 0, 0, 140)
+Label3.BackgroundColor3 = Color3.fromRGB(87, 77, 76)
+Label3.Text = "Auto Buy Aura Shards"
+Label3.TextColor3 = Color3.new(1, 1, 1)
+Label3.Font = Enum.Font.SourceSans
+Label3.TextSize = 20
+Label3.Parent = MainFrame
 
--- Container for tab buttons (top, below close button)
-local tabsContainer = Instance.new("Frame")
-tabsContainer.Size = UDim2.new(1, -20, 0, 40)
-tabsContainer.Position = UDim2.new(0, 10, 0, 50)
-tabsContainer.BackgroundTransparency = 1
-tabsContainer.Parent = mainFrame
+-- Toggle Button 1: For Aura Egg
+local Button2 = Instance.new("TextButton")
+Button2.Size = UDim2.new(0, 109, 0, 50)
+Button2.Position = UDim2.new(0, 290, 0, 70)
+Button2.BackgroundColor3 = Color3.fromRGB(170, 0, 0)
+Button2.Text = "Off"
+Button2.TextColor3 = Color3.new(1, 1, 1)
+Button2.Font = Enum.Font.SourceSansBold
+Button2.TextSize = 20
+Button2.Parent = MainFrame
 
-local tabButtonsLayout = Instance.new("UIListLayout")
-tabButtonsLayout.FillDirection = Enum.FillDirection.Horizontal
-tabButtonsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
-tabButtonsLayout.SortOrder = Enum.SortOrder.LayoutOrder
-tabButtonsLayout.Padding = UDim.new(0, 10)
-tabButtonsLayout.Parent = tabsContainer
+-- Toggle Button 2: For Aura Shards
+local Button3 = Instance.new("TextButton")
+Button3.Size = UDim2.new(0, 109, 0, 50)
+Button3.Position = UDim2.new(0, 290, 0, 140)
+Button3.BackgroundColor3 = Color3.fromRGB(170, 0, 0)
+Button3.Text = "Off"
+Button3.TextColor3 = Color3.new(1, 1, 1)
+Button3.Font = Enum.Font.SourceSansBold
+Button3.TextSize = 20
+Button3.Parent = MainFrame
 
--- Helper to create tab buttons
-local function createTabButton(name)
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0, 100, 1, 0)
-    btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btn.Font = Enum.Font.SourceSansBold
-    btn.TextScaled = true
-    btn.Text = name
-    btn.AutoButtonColor = true
-    btn.Parent = tabsContainer
-    return btn
+-- Hide Button (on top-right under green bar)
+local HideButton = Instance.new("TextButton")
+HideButton.Size = UDim2.new(0, 137, 0, 32)
+HideButton.Position = UDim2.new(1, -145, 0, 0) -- top-right corner inside label
+HideButton.BackgroundColor3 = Color3.fromRGB(87, 77, 76)
+HideButton.Text = "Hide"
+HideButton.TextColor3 = Color3.new(1, 1, 1)
+HideButton.Font = Enum.Font.SourceSansBold
+HideButton.TextSize = 20
+HideButton.Parent = MainFrame
+
+-- Show Button (appears in top-left corner when GUI hidden)
+local ShowButton = Instance.new("TextButton")
+ShowButton.Size = UDim2.new(0, 100, 0, 40)
+ShowButton.Position = UDim2.new(0, 10, 0, 10)
+ShowButton.BackgroundColor3 = Color3.fromRGB(87, 77, 76)
+ShowButton.Text = "Show"
+ShowButton.TextColor3 = Color3.new(1, 1, 1)
+ShowButton.Font = Enum.Font.SourceSansBold
+ShowButton.TextSize = 20
+ShowButton.Visible = false
+ShowButton.Parent = ScreenGui
+
+-- Variables for toggles
+local toggle1 = false
+local toggle2 = false
+
+-- Auto Buy functions
+local function autoBuyAuraEgg()
+	while toggle1 do
+		for i = 1, 4 do
+			local args = { "AuraEggMerchant", i }
+			local success, err = pcall(function()
+				ReplicatedStorage:WaitForChild("Network")
+					:WaitForChild("CustomMerchants_Purchase")
+					:InvokeServer(unpack(args))
+			end)
+			if not success then
+				warn("Aura Egg AutoBuy error: ", err)
+			end
+			wait(0.5)
+		end
+		wait(3)
+	end
 end
 
-local tabNames = {"Main", "Merchants", "Event"}
-local tabButtons = {}
-local tabFrames = {}
-
--- Create tab buttons and corresponding content frames
-for i, tabName in ipairs(tabNames) do
-    local btn = createTabButton(tabName)
-    tabButtons[tabName] = btn
-
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(1, -20, 1, -100) -- fill below tabsContainer, leave space for buttons below
-    frame.Position = UDim2.new(0, 10, 0, 90)
-    frame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-    frame.BorderSizePixel = 0
-    frame.Visible = false
-    frame.Parent = mainFrame
-
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 8)
-    corner.Parent = frame
-
-    tabFrames[tabName] = frame
+local function autoBuyAuraShards()
+	while toggle2 do
+		for i = 1, 10 do
+			local args = { i }
+			local success, err = pcall(function()
+				ReplicatedStorage:WaitForChild("Network")
+					:WaitForChild("AuraMerchant_Purchase")
+					:InvokeServer(unpack(args))
+			end)
+			if not success then
+				warn("Aura Shards AutoBuy error: ", err)
+			end
+			wait(0.5)
+		end
+		wait(3)
+	end
 end
 
--- Select tab helper function
-local function selectTab(name)
-    for tabName, frame in pairs(tabFrames) do
-        frame.Visible = (tabName == name)
-        tabButtons[tabName].BackgroundColor3 = (tabName == name) and Color3.fromRGB(100, 149, 237) or Color3.fromRGB(60, 60, 60) -- Highlight selected tab
-    end
-end
-
--- Initially select "Main"
-selectTab("Main")
-
--- Connect tab buttons to switch tabs
-for tabName, btn in pairs(tabButtons) do
-    btn.MouseButton1Click:Connect(function()
-        selectTab(tabName)
-    end)
-end
-
--- Lock UI button (below the tab content)
-local lockUIButton = Instance.new("TextButton")
-lockUIButton.Size = UDim2.new(0.5, 0, 0, 40)
-lockUIButton.Position = UDim2.new(0.25, 0, 1, -50)
-lockUIButton.AnchorPoint = Vector2.new(0, 1)
-lockUIButton.BackgroundColor3 = Color3.fromRGB(70, 130, 180)
-lockUIButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-lockUIButton.Font = Enum.Font.SourceSansBold
-lockUIButton.TextScaled = true
-lockUIButton.Text = "Lock UI"
-lockUIButton.Parent = mainFrame
-
--- Show/Hide Button (always visible)
-local showHideButton = Instance.new("TextButton")
-showHideButton.Size = UDim2.new(0.15, 0, 0, 40)
-showHideButton.Position = UDim2.new(0.5, 0, 0.05, 0)
-showHideButton.AnchorPoint = Vector2.new(0.5, 0)
-showHideButton.BackgroundColor3 = Color3.fromRGB(70, 130, 180)
-showHideButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-showHideButton.Font = Enum.Font.SourceSansBold
-showHideButton.TextScaled = true
-showHideButton.Text = "Hide"
-showHideButton.Parent = screenGui
-
--- Dragging logic
-local dragging = false
-local dragInput, dragStart, startPos
-
-local locked = false -- lock state
-
-local function update(input)
-    local delta = input.Position - dragStart
-    mainFrame.Position = UDim2.new(
-        startPos.X.Scale,
-        startPos.X.Offset + delta.X,
-        startPos.Y.Scale,
-        startPos.Y.Offset + delta.Y
-    )
-    -- Keep showHideButton positioned relative to mainFrame top center
-    showHideButton.Position = UDim2.new(mainFrame.Position.X.Scale, mainFrame.Position.X.Offset, mainFrame.Position.Y.Scale - 0.06, mainFrame.Position.Y.Offset)
-end
-
-mainFrame.InputBegan:Connect(function(input)
-    if locked then return end
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = true
-        dragStart = input.Position
-        startPos = mainFrame.Position
-
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
-        end)
-    end
+-- Toggle logic: Aura Egg
+Button2.MouseButton1Click:Connect(function()
+	toggle1 = not toggle1
+	Button2.Text = toggle1 and "On" or "Off"
+	Button2.BackgroundColor3 = toggle1 and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(170, 0, 0)
+	if toggle1 then
+		spawn(autoBuyAuraEgg)
+	end
 end)
 
-mainFrame.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-        dragInput = input
-    end
+-- Toggle logic: Aura Shards
+Button3.MouseButton1Click:Connect(function()
+	toggle2 = not toggle2
+	Button3.Text = toggle2 and "On" or "Off"
+	Button3.BackgroundColor3 = toggle2 and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(170, 0, 0)
+	if toggle2 then
+		spawn(autoBuyAuraShards)
+	end
 end)
 
-UserInputService.InputChanged:Connect(function(input)
-    if input == dragInput and dragging then
-        update(input)
-    end
+-- Hide/Show logic
+HideButton.MouseButton1Click:Connect(function()
+	MainFrame.Visible = false
+	ShowButton.Visible = true
 end)
 
--- Show/Hide toggle functionality
-showHideButton.MouseButton1Click:Connect(function()
-    if mainFrame.Visible then
-        mainFrame.Visible = false
-        showHideButton.Text = "Show"
-    else
-        mainFrame.Visible = true
-        showHideButton.Text = "Hide"
-    end
-end)
-
--- Lock UI button: toggles drag lock
-lockUIButton.MouseButton1Click:Connect(function()
-    locked = not locked
-    if locked then
-        lockUIButton.Text = "Unlock UI"
-        mainFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    else
-        lockUIButton.Text = "Lock UI"
-        mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    end
-end)
-
--- Position showHideButton initially relative to mainFrame
-showHideButton.Position = UDim2.new(mainFrame.Position.X.Scale, mainFrame.Position.X.Offset, mainFrame.Position.Y.Scale - 0.06, mainFrame.Position.Y.Offset)
-
--- =========================
--- Event Tab content: Aura Event Merchants (renamed)
--- =========================
-
-local eventFrame = tabFrames["Event"]
-
--- Rename title label to "Aura Event Merchants"
-local titleLabel = Instance.new("TextLabel")
-titleLabel.Size = UDim2.new(1, -20, 0, 30)
-titleLabel.Position = UDim2.new(0, 10, 0, 10)
-titleLabel.BackgroundTransparency = 1
-titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-titleLabel.Font = Enum.Font.SourceSansBold
-titleLabel.TextScaled = true
-titleLabel.Text = "Aura Event Merchants"
-titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-titleLabel.Parent = eventFrame
-
--- Aura Egg Auto Buy toggle button
-local autoBuyToggle = Instance.new("TextButton")
-autoBuyToggle.Size = UDim2.new(0, 150, 0, 40)
-autoBuyToggle.Position = UDim2.new(0, 10, 0, 50)
-autoBuyToggle.BackgroundColor3 = Color3.fromRGB(70, 130, 180)
-autoBuyToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
-autoBuyToggle.Font = Enum.Font.SourceSansBold
-autoBuyToggle.TextScaled = true
-autoBuyToggle.Text = "Aura Egg Auto Buy: OFF"
-autoBuyToggle.Parent = eventFrame
-
-local autoBuyEnabled = false
-
-local function autoBuyFunction()
-    while autoBuyEnabled do
-        for i = 1, 4 do
-            local args = {
-                "AuraEggMerchant",
-                i
-            }
-            local success, err = pcall(function()
-                game:GetService("ReplicatedStorage")
-                    :WaitForChild("Network")
-                    :WaitForChild("CustomMerchants_Purchase")
-                    :InvokeServer(unpack(args))
-            end)
-            if not success then
-                warn("Aura Egg AutoBuy error: ", err)
-            end
-            wait(0.5)
-        end
-        wait(3)
-    end
-end
-
-autoBuyToggle.MouseButton1Click:Connect(function()
-    autoBuyEnabled = not autoBuyEnabled
-    if autoBuyEnabled then
-        autoBuyToggle.Text = "Aura Egg Auto Buy: ON"
-        spawn(autoBuyFunction)
-    else
-        autoBuyToggle.Text = "Aura Egg Auto Buy: OFF"
-    end
-end)
-
--- Aura Shards Auto Buy toggle button (new)
-local auraShardsToggle = Instance.new("TextButton")
-auraShardsToggle.Size = UDim2.new(0, 150, 0, 40)
-auraShardsToggle.Position = UDim2.new(0, 170, 0, 50) -- next to aura egg button
-auraShardsToggle.BackgroundColor3 = Color3.fromRGB(70, 130, 180)
-auraShardsToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
-auraShardsToggle.Font = Enum.Font.SourceSansBold
-auraShardsToggle.TextScaled = true
-auraShardsToggle.Text = "Aura Shards Auto Buy: OFF"
-auraShardsToggle.Parent = eventFrame
-
-local auraShardsEnabled = false
-
-local function auraShardsAutoBuy()
-    while auraShardsEnabled do
-        for i = 1, 10 do
-            local args = { i }
-            local success, err = pcall(function()
-                game:GetService("ReplicatedStorage")
-                    :WaitForChild("Network")
-                    :WaitForChild("AuraMerchant_Purchase")
-                    :InvokeServer(unpack(args))
-            end)
-            if not success then
-                warn("Aura Shards AutoBuy error: ", err)
-            end
-            wait(0.5)
-        end
-        wait(3)
-    end
-end
-
-auraShardsToggle.MouseButton1Click:Connect(function()
-    auraShardsEnabled = not auraShardsEnabled
-    if auraShardsEnabled then
-        auraShardsToggle.Text = "Aura Shards Auto Buy: ON"
-        spawn(auraShardsAutoBuy)
-    else
-        auraShardsToggle.Text = "Aura Shards Auto Buy: OFF"
-    end
+ShowButton.MouseButton1Click:Connect(function()
+	MainFrame.Visible = true
+	ShowButton.Visible = false
 end)
