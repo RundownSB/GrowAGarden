@@ -105,18 +105,18 @@ local toggle2 = false
 local function autoBuyAuraEgg()
 	while toggle1 do
 		for i = 1, 5 do
-			local args = { "AuraEggMerchant", i }
-			local success, err = pcall(function()
-				ReplicatedStorage:WaitForChild("Network")
-					:WaitForChild("CustomMerchants_Purchase")
-					:InvokeServer(unpack(args))
-			end)
-			if not success then
-				warn("Aura Egg AutoBuy error: ", err)
-			end
-			wait(0.1)
-		end
-		wait(1)
+    local args = { "AuraEggMerchant", i }
+    local success, err = pcall(function()
+        ReplicatedStorage:WaitForChild("Network")
+            :WaitForChild("CustomMerchants_Purchase")
+            :InvokeServer(unpack(args))
+    end)
+    if not success then
+        warn("Aura Egg AutoBuy error: ", err)
+    end
+end
+wait(1) -- or whatever delay you want after all 5 purchases
+
 	end
 end
 
