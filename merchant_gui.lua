@@ -114,9 +114,9 @@ local function autoBuyAuraEgg()
 			if not success then
 				warn("Aura Egg AutoBuy error: ", err)
 			end
-			wait(0.5)
+			wait(0.1)
 		end
-		wait(3)
+		wait(1)
 	end
 end
 
