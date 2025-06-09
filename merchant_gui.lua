@@ -173,8 +173,20 @@ local UserInputService = game:GetService("UserInputService")
 local dragToggle = false
 local dragInput, dragStart, startPos
 
+local function updateDrag(input)
+	if dragToggle and input.Position and dragStart then
+		local delta = input.Position - dragStart
+		ShowButton.Position = UDim2.new(
+			startPos.X.Scale,
+			startPos.X.Offset + delta.X,
+			startPos.Y.Scale,
+			startPos.Y.Offset + delta.Y
+		)
+	end
+end
+
 ShowButton.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 		dragToggle = true
 		dragStart = input.Position
 		startPos = ShowButton.Position
@@ -188,19 +200,13 @@ ShowButton.InputBegan:Connect(function(input)
 end)
 
 ShowButton.InputChanged:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseMovement then
+	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
 		dragInput = input
 	end
 end)
 
 UserInputService.InputChanged:Connect(function(input)
-	if input == dragInput and dragToggle then
-		local delta = input.Position - dragStart
-		ShowButton.Position = UDim2.new(
-			startPos.X.Scale,
-			startPos.X.Offset + delta.X,
-			startPos.Y.Scale,
-			startPos.Y.Offset + delta.Y
-		)
+	if input == dragInput then
+		updateDrag(input)
 	end
 end)
