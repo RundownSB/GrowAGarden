@@ -1,8 +1,5 @@
--- Updated Full Script with Debug Logging and Mobile-Friendly Scaling
-
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
@@ -13,9 +10,9 @@ screenGui.ResetOnSpawn = false
 
 -- Main frame (holds all content except Show/Hide)
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0.8, 0, 0.6, 0) -- Mobile-friendly
+mainFrame.Size = UDim2.new(0.5, 0, 0.55, 0)  -- increased width and height for better look
 mainFrame.AnchorPoint = Vector2.new(0.5, 0)
-mainFrame.Position = UDim2.new(0.5, 0, 0.15, 0)
+mainFrame.Position = UDim2.new(0.5, 0, 0.15, 0) -- top-center-ish
 mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 mainFrame.BorderSizePixel = 0
 mainFrame.Parent = screenGui
@@ -24,6 +21,7 @@ local cornerMain = Instance.new("UICorner")
 cornerMain.CornerRadius = UDim.new(0, 12)
 cornerMain.Parent = mainFrame
 
+-- Close button top-right of mainFrame
 local closeButton = Instance.new("TextButton")
 closeButton.Text = "✖"
 closeButton.Size = UDim2.new(0, 30, 0, 30)
@@ -34,12 +32,14 @@ closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 closeButton.Font = Enum.Font.SourceSansBold
 closeButton.TextScaled = true
 closeButton.Parent = mainFrame
+
 closeButton.MouseButton1Click:Connect(function()
     if screenGui and screenGui.Parent then
         screenGui:Destroy()
     end
 end)
 
+-- Container for tab buttons (top, below close button)
 local tabsContainer = Instance.new("Frame")
 tabsContainer.Size = UDim2.new(1, -20, 0, 40)
 tabsContainer.Position = UDim2.new(0, 10, 0, 50)
@@ -50,12 +50,13 @@ local tabButtonsLayout = Instance.new("UIListLayout")
 tabButtonsLayout.FillDirection = Enum.FillDirection.Horizontal
 tabButtonsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
 tabButtonsLayout.SortOrder = Enum.SortOrder.LayoutOrder
-tabButtonsLayout.Padding = UDim.new(0, 10)
+tabButtonsLayout.Padding = UDim.new(0, 8) -- a bit less padding for tighter look
 tabButtonsLayout.Parent = tabsContainer
 
+-- Helper to create tab buttons
 local function createTabButton(name)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0, 100, 1, 0)
+    btn.Size = UDim2.new(0, 90, 1, 0)  -- smaller width to reduce big buttons
     btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Font = Enum.Font.SourceSansBold
@@ -70,12 +71,13 @@ local tabNames = {"Main", "Merchants", "Event"}
 local tabButtons = {}
 local tabFrames = {}
 
+-- Create tab buttons and corresponding content frames
 for i, tabName in ipairs(tabNames) do
     local btn = createTabButton(tabName)
     tabButtons[tabName] = btn
 
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(1, -20, 1, -100)
+    frame.Size = UDim2.new(1, -20, 1, -110) -- fill below tabsContainer, leave space for buttons below
     frame.Position = UDim2.new(0, 10, 0, 90)
     frame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
     frame.BorderSizePixel = 0
@@ -89,20 +91,25 @@ for i, tabName in ipairs(tabNames) do
     tabFrames[tabName] = frame
 end
 
+-- Select tab helper function
 local function selectTab(name)
     for tabName, frame in pairs(tabFrames) do
         frame.Visible = (tabName == name)
-        tabButtons[tabName].BackgroundColor3 = (tabName == name) and Color3.fromRGB(100, 149, 237) or Color3.fromRGB(60, 60, 60)
+        tabButtons[tabName].BackgroundColor3 = (tabName == name) and Color3.fromRGB(100, 149, 237) or Color3.fromRGB(60, 60, 60) -- Highlight selected tab
     end
 end
+
+-- Initially select "Main"
 selectTab("Main")
 
+-- Connect tab buttons to switch tabs
 for tabName, btn in pairs(tabButtons) do
     btn.MouseButton1Click:Connect(function()
         selectTab(tabName)
     end)
 end
 
+-- Lock UI button (below the tab content)
 local lockUIButton = Instance.new("TextButton")
 lockUIButton.Size = UDim2.new(0.5, 0, 0, 40)
 lockUIButton.Position = UDim2.new(0.25, 0, 1, -50)
@@ -114,9 +121,10 @@ lockUIButton.TextScaled = true
 lockUIButton.Text = "Lock UI"
 lockUIButton.Parent = mainFrame
 
+-- Show/Hide Button (always visible)
 local showHideButton = Instance.new("TextButton")
-showHideButton.Size = UDim2.new(0.25, 0, 0, 40)
-showHideButton.Position = UDim2.new(0.5, 0, 0.02, 0)
+showHideButton.Size = UDim2.new(0.15, 0, 0, 40)
+showHideButton.Position = UDim2.new(0.5, 0, 0.05, 0)
 showHideButton.AnchorPoint = Vector2.new(0.5, 0)
 showHideButton.BackgroundColor3 = Color3.fromRGB(70, 130, 180)
 showHideButton.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -125,13 +133,21 @@ showHideButton.TextScaled = true
 showHideButton.Text = "Hide"
 showHideButton.Parent = screenGui
 
+-- Dragging logic
 local dragging = false
 local dragInput, dragStart, startPos
-local locked = false
+
+local locked = false -- lock state
 
 local function update(input)
     local delta = input.Position - dragStart
-    mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    mainFrame.Position = UDim2.new(
+        startPos.X.Scale,
+        startPos.X.Offset + delta.X,
+        startPos.Y.Scale,
+        startPos.Y.Offset + delta.Y
+    )
+    -- Keep showHideButton positioned relative to mainFrame top center
     showHideButton.Position = UDim2.new(mainFrame.Position.X.Scale, mainFrame.Position.X.Offset, mainFrame.Position.Y.Scale - 0.06, mainFrame.Position.Y.Offset)
 end
 
@@ -162,21 +178,38 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
+-- Show/Hide toggle functionality
 showHideButton.MouseButton1Click:Connect(function()
-    mainFrame.Visible = not mainFrame.Visible
-    showHideButton.Text = mainFrame.Visible and "Hide" or "Show"
+    if mainFrame.Visible then
+        mainFrame.Visible = false
+        showHideButton.Text = "Show"
+    else
+        mainFrame.Visible = true
+        showHideButton.Text = "Hide"
+    end
 end)
 
+-- Lock UI button: toggles drag lock
 lockUIButton.MouseButton1Click:Connect(function()
     locked = not locked
-    lockUIButton.Text = locked and "Unlock UI" or "Lock UI"
-    mainFrame.BackgroundColor3 = locked and Color3.fromRGB(50, 50, 50) or Color3.fromRGB(30, 30, 30)
+    if locked then
+        lockUIButton.Text = "Unlock UI"
+        mainFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    else
+        lockUIButton.Text = "Lock UI"
+        mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    end
 end)
 
+-- Position showHideButton initially relative to mainFrame
 showHideButton.Position = UDim2.new(mainFrame.Position.X.Scale, mainFrame.Position.X.Offset, mainFrame.Position.Y.Scale - 0.06, mainFrame.Position.Y.Offset)
 
--- Event Tab: Auto Buy Setup
+-- =========================
+-- Add Auto Buy in Event Tab
+-- =========================
+
 local eventFrame = tabFrames["Event"]
+
 local titleLabel = Instance.new("TextLabel")
 titleLabel.Size = UDim2.new(1, -20, 0, 30)
 titleLabel.Position = UDim2.new(0, 10, 0, 10)
@@ -203,23 +236,31 @@ local autoBuyEnabled = false
 local function autoBuyFunction()
     while autoBuyEnabled do
         for i = 1, 4 do
-            local args = {"AuraEggMerchant", i}
+            local args = {
+                "AuraEggMerchant",
+                i
+            }
             local success, err = pcall(function()
-                ReplicatedStorage:WaitForChild("Network"):WaitForChild("CustomMerchants_Purchase"):InvokeServer(unpack(args))
+                game:GetService("ReplicatedStorage")
+                    :WaitForChild("Network")
+                    :WaitForChild("CustomMerchants_Purchase")
+                    :InvokeServer(unpack(args))
             end)
             if not success then
-                warn("AutoBuy error:", err)
+                warn("AutoBuy error: ", err)
             end
-            task.wait(0.5)
+            wait(0.5)
         end
-        task.wait(3)
+        wait(3)
     end
 end
 
 autoBuyToggle.MouseButton1Click:Connect(function()
     autoBuyEnabled = not autoBuyEnabled
-    autoBuyToggle.Text = autoBuyEnabled and "Auto Buy: ON" or "Auto Buy: OFF"
     if autoBuyEnabled then
-        task.spawn(autoBuyFunction)
+        autoBuyToggle.Text = "Auto Buy: ON"
+        spawn(autoBuyFunction)
+    else
+        autoBuyToggle.Text = "Auto Buy: OFF"
     end
 end)
