@@ -10,7 +10,7 @@ screenGui.ResetOnSpawn = false
 
 -- Main frame (holds all content except Show/Hide)
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0.5, 0, 0.55, 0)  -- increased width and height for better look
+mainFrame.Size = UDim2.new(0.35, 0, 0.45, 0)  -- increased height for tabs + content
 mainFrame.AnchorPoint = Vector2.new(0.5, 0)
 mainFrame.Position = UDim2.new(0.5, 0, 0.15, 0) -- top-center-ish
 mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
@@ -50,13 +50,13 @@ local tabButtonsLayout = Instance.new("UIListLayout")
 tabButtonsLayout.FillDirection = Enum.FillDirection.Horizontal
 tabButtonsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
 tabButtonsLayout.SortOrder = Enum.SortOrder.LayoutOrder
-tabButtonsLayout.Padding = UDim.new(0, 8) -- a bit less padding for tighter look
+tabButtonsLayout.Padding = UDim.new(0, 10)
 tabButtonsLayout.Parent = tabsContainer
 
 -- Helper to create tab buttons
 local function createTabButton(name)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0, 90, 1, 0)  -- smaller width to reduce big buttons
+    btn.Size = UDim2.new(0, 100, 1, 0)
     btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Font = Enum.Font.SourceSansBold
@@ -77,7 +77,7 @@ for i, tabName in ipairs(tabNames) do
     tabButtons[tabName] = btn
 
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(1, -20, 1, -110) -- fill below tabsContainer, leave space for buttons below
+    frame.Size = UDim2.new(1, -20, 1, -100) -- fill below tabsContainer, leave space for buttons below
     frame.Position = UDim2.new(0, 10, 0, 90)
     frame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
     frame.BorderSizePixel = 0
@@ -205,11 +205,12 @@ end)
 showHideButton.Position = UDim2.new(mainFrame.Position.X.Scale, mainFrame.Position.X.Offset, mainFrame.Position.Y.Scale - 0.06, mainFrame.Position.Y.Offset)
 
 -- =========================
--- Add Auto Buy in Event Tab
+-- Event Tab content: Aura Event Merchants (renamed)
 -- =========================
 
 local eventFrame = tabFrames["Event"]
 
+-- Rename title label to "Aura Event Merchants"
 local titleLabel = Instance.new("TextLabel")
 titleLabel.Size = UDim2.new(1, -20, 0, 30)
 titleLabel.Position = UDim2.new(0, 10, 0, 10)
@@ -217,10 +218,11 @@ titleLabel.BackgroundTransparency = 1
 titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 titleLabel.Font = Enum.Font.SourceSansBold
 titleLabel.TextScaled = true
-titleLabel.Text = "Auto Buy From Merchant"
+titleLabel.Text = "Aura Event Merchants"
 titleLabel.TextXAlignment = Enum.TextXAlignment.Left
 titleLabel.Parent = eventFrame
 
+-- Aura Egg Auto Buy toggle button
 local autoBuyToggle = Instance.new("TextButton")
 autoBuyToggle.Size = UDim2.new(0, 150, 0, 40)
 autoBuyToggle.Position = UDim2.new(0, 10, 0, 50)
@@ -228,7 +230,7 @@ autoBuyToggle.BackgroundColor3 = Color3.fromRGB(70, 130, 180)
 autoBuyToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
 autoBuyToggle.Font = Enum.Font.SourceSansBold
 autoBuyToggle.TextScaled = true
-autoBuyToggle.Text = "Auto Buy: OFF"
+autoBuyToggle.Text = "Aura Egg Auto Buy: OFF"
 autoBuyToggle.Parent = eventFrame
 
 local autoBuyEnabled = false
@@ -247,7 +249,7 @@ local function autoBuyFunction()
                     :InvokeServer(unpack(args))
             end)
             if not success then
-                warn("AutoBuy error: ", err)
+                warn("Aura Egg AutoBuy error: ", err)
             end
             wait(0.5)
         end
@@ -258,9 +260,51 @@ end
 autoBuyToggle.MouseButton1Click:Connect(function()
     autoBuyEnabled = not autoBuyEnabled
     if autoBuyEnabled then
-        autoBuyToggle.Text = "Auto Buy: ON"
+        autoBuyToggle.Text = "Aura Egg Auto Buy: ON"
         spawn(autoBuyFunction)
     else
-        autoBuyToggle.Text = "Auto Buy: OFF"
+        autoBuyToggle.Text = "Aura Egg Auto Buy: OFF"
+    end
+end)
+
+-- Aura Shards Auto Buy toggle button (new)
+local auraShardsToggle = Instance.new("TextButton")
+auraShardsToggle.Size = UDim2.new(0, 150, 0, 40)
+auraShardsToggle.Position = UDim2.new(0, 170, 0, 50) -- next to aura egg button
+auraShardsToggle.BackgroundColor3 = Color3.fromRGB(70, 130, 180)
+auraShardsToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+auraShardsToggle.Font = Enum.Font.SourceSansBold
+auraShardsToggle.TextScaled = true
+auraShardsToggle.Text = "Aura Shards Auto Buy: OFF"
+auraShardsToggle.Parent = eventFrame
+
+local auraShardsEnabled = false
+
+local function auraShardsAutoBuy()
+    while auraShardsEnabled do
+        for i = 1, 10 do
+            local args = { i }
+            local success, err = pcall(function()
+                game:GetService("ReplicatedStorage")
+                    :WaitForChild("Network")
+                    :WaitForChild("AuraMerchant_Purchase")
+                    :InvokeServer(unpack(args))
+            end)
+            if not success then
+                warn("Aura Shards AutoBuy error: ", err)
+            end
+            wait(0.5)
+        end
+        wait(3)
+    end
+end
+
+auraShardsToggle.MouseButton1Click:Connect(function()
+    auraShardsEnabled = not auraShardsEnabled
+    if auraShardsEnabled then
+        auraShardsToggle.Text = "Aura Shards Auto Buy: ON"
+        spawn(auraShardsAutoBuy)
+    else
+        auraShardsToggle.Text = "Aura Shards Auto Buy: OFF"
     end
 end)
