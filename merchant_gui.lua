@@ -1,6 +1,8 @@
+-- Services
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
+
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
@@ -12,13 +14,26 @@ ScreenGui.Parent = playerGui
 
 -- Main Frame
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 528, 0, 367)
+MainFrame.Size = UDim2.new(0, 528, 0, 327)
 MainFrame.Position = UDim2.new(0.247, 0, 0.139, 0)
 MainFrame.BackgroundColor3 = Color3.fromRGB(39, 39, 39)
 MainFrame.BorderSizePixel = 0
 MainFrame.Parent = ScreenGui
 
--- Label 1: Pets Go Event
+-- Labels
+local function createLabel(text, positionY)
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(0, 281, 0, 50)
+    label.Position = UDim2.new(0, 0, 0, positionY)
+    label.BackgroundColor3 = Color3.fromRGB(87, 77, 76)
+    label.Text = text
+    label.TextColor3 = Color3.new(1, 1, 1)
+    label.Font = Enum.Font.SourceSans
+    label.TextSize = 20
+    label.Parent = MainFrame
+    return label
+end
+
 local Label1 = Instance.new("TextLabel")
 Label1.Size = UDim2.new(0, 528, 0, 32)
 Label1.Position = UDim2.new(0, 0, 0, 0)
@@ -29,51 +44,29 @@ Label1.Font = Enum.Font.SourceSansBold
 Label1.TextSize = 24
 Label1.Parent = MainFrame
 
--- Label 2: Auto Buy Aura Egg
-local Label2 = Instance.new("TextLabel")
-Label2.Size = UDim2.new(0, 282, 0, 50)
-Label2.Position = UDim2.new(0, 0, 0, 70)
-Label2.BackgroundColor3 = Color3.fromRGB(87, 77, 76)
-Label2.Text = "Auto Buy Aura Egg"
-Label2.TextColor3 = Color3.new(1, 1, 1)
-Label2.Font = Enum.Font.SourceSans
-Label2.TextSize = 20
-Label2.Parent = MainFrame
+createLabel("Auto Buy Aura Egg", 70)
+createLabel("Auto Buy Aura Shards", 140)
+createLabel("Auto Teleport Mining Cave", 210)
 
--- Label 3: Auto Buy Aura Shards
-local Label3 = Instance.new("TextLabel")
-Label3.Size = UDim2.new(0, 281, 0, 50)
-Label3.Position = UDim2.new(0, 0, 0, 140)
-Label3.BackgroundColor3 = Color3.fromRGB(87, 77, 76)
-Label3.Text = "Auto Buy Aura Shards"
-Label3.TextColor3 = Color3.new(1, 1, 1)
-Label3.Font = Enum.Font.SourceSans
-Label3.TextSize = 20
-Label3.Parent = MainFrame
+-- Toggle Buttons
+local function createToggleButton(positionY)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 109, 0, 50)
+    button.Position = UDim2.new(0, 290, 0, positionY)
+    button.BackgroundColor3 = Color3.fromRGB(170, 0, 0)
+    button.Text = "Off"
+    button.TextColor3 = Color3.new(1, 1, 1)
+    button.Font = Enum.Font.SourceSansBold
+    button.TextSize = 20
+    button.Parent = MainFrame
+    return button
+end
 
--- Toggle Button 1: For Aura Egg
-local Button2 = Instance.new("TextButton")
-Button2.Size = UDim2.new(0, 109, 0, 50)
-Button2.Position = UDim2.new(0, 290, 0, 70)
-Button2.BackgroundColor3 = Color3.fromRGB(170, 0, 0)
-Button2.Text = "Off"
-Button2.TextColor3 = Color3.new(1, 1, 1)
-Button2.Font = Enum.Font.SourceSansBold
-Button2.TextSize = 20
-Button2.Parent = MainFrame
+local Button2 = createToggleButton(70)
+local Button3 = createToggleButton(140)
+local TPButton = createToggleButton(210)
 
--- Toggle Button 2: For Aura Shards
-local Button3 = Instance.new("TextButton")
-Button3.Size = UDim2.new(0, 109, 0, 50)
-Button3.Position = UDim2.new(0, 290, 0, 140)
-Button3.BackgroundColor3 = Color3.fromRGB(170, 0, 0)
-Button3.Text = "Off"
-Button3.TextColor3 = Color3.new(1, 1, 1)
-Button3.Font = Enum.Font.SourceSansBold
-Button3.TextSize = 20
-Button3.Parent = MainFrame
-
--- Hide Button (on top-right under green bar)
+-- Hide/Show Buttons
 local HideButton = Instance.new("TextButton")
 HideButton.Size = UDim2.new(0, 137, 0, 32)
 HideButton.Position = UDim2.new(1, -145, 0, 0)
@@ -84,7 +77,6 @@ HideButton.Font = Enum.Font.SourceSansBold
 HideButton.TextSize = 20
 HideButton.Parent = MainFrame
 
--- Show Button (appears when GUI hidden)
 local ShowButton = Instance.new("TextButton")
 ShowButton.Size = UDim2.new(0, 100, 0, 40)
 ShowButton.Position = UDim2.new(0, 10, 0, 10)
@@ -96,168 +88,130 @@ ShowButton.TextSize = 20
 ShowButton.Visible = false
 ShowButton.Parent = ScreenGui
 
--- Variables for toggles
+-- Toggle Variables
 local toggle1 = false
 local toggle2 = false
+local teleporting = false
 
--- Auto Buy functions
+-- Auto Buy Logic
 local function autoBuyAuraEgg()
-	while toggle1 do
-		for i = 1, 4 do
-			local args = { "AuraEggMerchant", i }
-			local success, err = pcall(function()
-				ReplicatedStorage:WaitForChild("Network")
-					:WaitForChild("CustomMerchants_Purchase")
-					:InvokeServer(unpack(args))
-			end)
-			if not success then
-				warn("Aura Egg AutoBuy error: ", err)
-			end
-		end
-		wait(1)
-	end
+    while toggle1 do
+        for i = 1, 4 do
+            local args = { "AuraEggMerchant", i }
+            local success, err = pcall(function()
+                ReplicatedStorage.Network.CustomMerchants_Purchase:InvokeServer(unpack(args))
+            end)
+            if not success then warn("Aura Egg error:", err) end
+        end
+        task.wait(1)
+    end
 end
 
 local function autoBuyAuraShards()
-	while toggle2 do
-		for i = 1, 10 do
-			local args = { i }
-			local success, err = pcall(function()
-				ReplicatedStorage:WaitForChild("Network")
-					:WaitForChild("AuraMerchant_Purchase")
-					:InvokeServer(unpack(args))
-			end)
-			if not success then
-				warn("Aura Shards AutoBuy error: ", err)
-			end
-		end
-		wait(1)
-	end
+    while toggle2 do
+        for i = 1, 10 do
+            local args = { i }
+            local success, err = pcall(function()
+                ReplicatedStorage.Network.AuraMerchant_Purchase:InvokeServer(unpack(args))
+            end)
+            if not success then warn("Aura Shards error:", err) end
+        end
+        task.wait(1)
+    end
 end
 
--- Toggle logic: Aura Egg
+local function teleportLoop()
+    while teleporting do
+        local character = player.Character or player.CharacterAdded:Wait()
+        local hrp = character:WaitForChild("HumanoidRootPart")
+
+        local enterPortal = workspace.MAP.INTERACT.CaveTeleports.Enter
+        firetouchinterest(hrp, enterPortal, 0)
+        task.wait(0.1)
+        firetouchinterest(hrp, enterPortal, 1)
+
+        task.wait(3)
+
+        hrp.CFrame = CFrame.new(-11.4716215, -259.332214, 762.846130)
+        task.wait(180)
+
+        local leavePart = workspace.MAP.INTERACT.CaveTeleports:FindFirstChild("LeavePart")
+        if leavePart then
+            hrp.CFrame = CFrame.new(leavePart:GetPivot().Position + Vector3.new(0, 5, 0))
+        end
+
+        task.wait(120)
+    end
+end
+
+-- Button Logic
 Button2.MouseButton1Click:Connect(function()
-	toggle1 = not toggle1
-	Button2.Text = toggle1 and "On" or "Off"
-	Button2.BackgroundColor3 = toggle1 and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(170, 0, 0)
-	if toggle1 then
-		spawn(autoBuyAuraEgg)
-	end
+    toggle1 = not toggle1
+    Button2.Text = toggle1 and "On" or "Off"
+    Button2.BackgroundColor3 = toggle1 and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(170, 0, 0)
+    if toggle1 then task.spawn(autoBuyAuraEgg) end
 end)
 
--- Toggle logic: Aura Shards
 Button3.MouseButton1Click:Connect(function()
-	toggle2 = not toggle2
-	Button3.Text = toggle2 and "On" or "Off"
-	Button3.BackgroundColor3 = toggle2 and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(170, 0, 0)
-	if toggle2 then
-		spawn(autoBuyAuraShards)
-	end
+    toggle2 = not toggle2
+    Button3.Text = toggle2 and "On" or "Off"
+    Button3.BackgroundColor3 = toggle2 and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(170, 0, 0)
+    if toggle2 then task.spawn(autoBuyAuraShards) end
 end)
 
--- Hide/Show logic
+TPButton.MouseButton1Click:Connect(function()
+    teleporting = not teleporting
+    TPButton.Text = teleporting and "On" or "Off"
+    TPButton.BackgroundColor3 = teleporting and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(170, 0, 0)
+    if teleporting then task.spawn(teleportLoop) end
+end)
+
 HideButton.MouseButton1Click:Connect(function()
-	MainFrame.Visible = false
-	ShowButton.Visible = true
+    MainFrame.Visible = false
+    ShowButton.Visible = true
 end)
 
 ShowButton.MouseButton1Click:Connect(function()
-	MainFrame.Visible = true
-	ShowButton.Visible = false
+    MainFrame.Visible = true
+    ShowButton.Visible = false
 end)
 
--- Make ShowButton draggable
-local dragging = false
-local dragInput, dragStart, startPos
+-- Drag GUI Button
+local dragging, dragInput, dragStart, startPos
 
 local function updateDrag(input)
-	if dragging and input.Position and dragStart then
-		local delta = input.Position - dragStart
-		ShowButton.Position = UDim2.new(
-			startPos.X.Scale,
-			startPos.X.Offset + delta.X,
-			startPos.Y.Scale,
-			startPos.Y.Offset + delta.Y
-		)
-	end
+    if dragging and input.Position and dragStart then
+        local delta = input.Position - dragStart
+        ShowButton.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
+    end
 end
 
 ShowButton.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-		dragging = true
-		dragStart = input.Position
-		startPos = ShowButton.Position
-
-		input.Changed:Connect(function()
-			if input.UserInputState == Enum.UserInputState.End then
-				dragging = false
-			end
-		end)
-	end
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = ShowButton.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
 end)
 
 ShowButton.InputChanged:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-		dragInput = input
-	end
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
 end)
 
 UserInputService.InputChanged:Connect(function(input)
-	if input == dragInput then
-		updateDrag(input)
-	end
-end)
-
--- Teleport button logic without manual pad teleport
-local TpButton = Instance.new("TextButton")
-TpButton.Size = UDim2.new(0, 150, 0, 50)
-TpButton.Position = UDim2.new(0, 290, 0, 210)
-TpButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-TpButton.Text = "Teleport Portal"
-TpButton.TextColor3 = Color3.new(1, 1, 1)
-TpButton.Font = Enum.Font.SourceSansBold
-TpButton.TextSize = 20
-TpButton.Parent = MainFrame
-
-TpButton.MouseButton1Click:Connect(function()
-	if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
-	local hrp = player.Character.HumanoidRootPart
-
-	local caveEnter = workspace.MAP.INTERACT.CaveTeleports.Enter
-	local caveLeave = workspace.MAP.INTERACT.CaveTeleports.Leave
-	local Network = ReplicatedStorage:WaitForChild("Network")
-	local eventLog = Network:WaitForChild("EventLog_Once")
-
-	-- Step 1: Teleport through cave enter portal (fire touch)
-	firetouchinterest(hrp, caveEnter, 0)
-	task.wait(0.1)
-	firetouchinterest(hrp, caveEnter, 1)
-
-	-- Step 2: Wait 5 seconds to load into the mines naturally
-	task.wait(5)
-
-	-- ** Removed manual teleport to mining pad here **
-
-	-- Step 3: Wait 3 minutes (180 seconds) in the mines
-	task.wait(30)
-
-	-- Step 4: Trigger leave portal TouchInterest to open leave prompt
-	firetouchinterest(hrp, caveLeave, 0)
-	task.wait(0.1)
-	firetouchinterest(hrp, caveLeave, 1)
-
-	task.wait(0.5)
-
-	-- Step 5: Fire "OpenTab" event to open leave prompt
-	eventLog:FireServer("OpenTab", "Message")
-	task.wait(0.5)
-
-	-- Step 6: Fire "CloseTab" event to simulate clicking "Yes"
-	eventLog:FireServer("CloseTab", "Message")
-	task.wait(0.5)
-
-	-- Step 7: Teleport back through leave portal to normal island
-	firetouchinterest(hrp, caveLeave, 0)
-	task.wait(0.1)
-	firetouchinterest(hrp, caveLeave, 1)
+    if input == dragInput then
+        updateDrag(input)
+    end
 end)
