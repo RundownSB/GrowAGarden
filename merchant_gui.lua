@@ -239,7 +239,7 @@ TpButton.MouseButton1Click:Connect(function()
 	-- ** Removed manual teleport to mining pad here **
 
 	-- Step 3: Wait 3 minutes (180 seconds) in the mines
-	task.wait(180)
+	task.wait(30)
 
 	-- Step 4: Trigger leave portal TouchInterest to open leave prompt
 	firetouchinterest(hrp, caveLeave, 0)
