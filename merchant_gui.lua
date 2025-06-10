@@ -1,9 +1,10 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
-local hrp = player.Character and player.Character:WaitForChild("HumanoidRootPart")
 
 -- Create GUI container
 local ScreenGui = Instance.new("ScreenGui")
@@ -13,7 +14,7 @@ ScreenGui.Parent = playerGui
 
 -- Main Frame
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 528, 0, 367)
+MainFrame.Size = UDim2.new(0, 528, 0, 327)
 MainFrame.Position = UDim2.new(0.247, 0, 0.139, 0)
 MainFrame.BackgroundColor3 = Color3.fromRGB(39, 39, 39)
 MainFrame.BorderSizePixel = 0
@@ -97,17 +98,6 @@ ShowButton.TextSize = 20
 ShowButton.Visible = false
 ShowButton.Parent = ScreenGui
 
--- TP Button
-local TpButton = Instance.new("TextButton")
-TpButton.Size = UDim2.new(0, 150, 0, 50)
-TpButton.Position = UDim2.new(0, 290, 0, 210)
-TpButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-TpButton.Text = "Teleport Portal"
-TpButton.TextColor3 = Color3.new(1, 1, 1)
-TpButton.Font = Enum.Font.SourceSansBold
-TpButton.TextSize = 20
-TpButton.Parent = MainFrame
-
 -- Variables for toggles
 local toggle1 = false
 local toggle2 = false
@@ -126,7 +116,7 @@ local function autoBuyAuraEgg()
 				warn("Aura Egg AutoBuy error: ", err)
 			end
 		end
-		wait(1) -- or whatever delay you want after all purchases
+		wait(1) -- or whatever delay you want after all 5 purchases
 	end
 end
 
@@ -143,8 +133,61 @@ local function autoBuyAuraShards()
 				warn("Aura Shards AutoBuy error: ", err)
 			end
 		end
-		wait(1) -- delay after all purchases
+		wait(1) -- delay after all 10 purchases
 	end
+end
+
+-- Function to trigger TouchInterest
+local function fireTouchInterest(part)
+    local character = player.Character
+    if not character then return end
+    local hrp = character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    -- Fire the TouchInterest using firetouchinterest (true = touch began, false = touch ended)
+    firetouchinterest(hrp, part, 0)
+    wait(0.1)
+    firetouchinterest(hrp, part, 1)
+end
+
+-- Function to auto confirm the leave prompt
+local function autoConfirmLeavePrompt()
+    local argsOpen = { "OpenTab", "Message" }
+    local argsClose = { "CloseTab", "Message" }
+    local network = ReplicatedStorage:WaitForChild("Network"):WaitForChild("EventLog_Once")
+    network:FireServer(unpack(argsOpen))
+    wait(0.1)
+    network:FireServer(unpack(argsClose))
+end
+
+-- Main teleport sequence
+local function teleportSequence()
+    local caveEnterTouch = workspace.MAP.INTERACT.CaveTeleports.Enter.TouchInterest
+    local caveLeaveTouch = workspace.MAP.INTERACT.CaveTeleports.Leave.TouchInterest
+    local miningPad = workspace.MAP.INTERACT.MiningPads:GetChildren()[6].PadGlow
+    local character = player.Character
+    if not character then return end
+    local hrp = character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    -- Teleport through portal entrance
+    fireTouchInterest(caveEnterTouch)
+    wait(5) -- Wait for loading after entering the portal
+
+    -- Tween move smoothly to mining pad position
+    local tweenInfo = TweenInfo.new(3, Enum.EasingStyle.Linear)
+    local targetCFrame = miningPad.CFrame * CFrame.new(0, 3, 0)
+    local tween = TweenService:Create(hrp, tweenInfo, {CFrame = targetCFrame})
+    tween:Play()
+    tween.Completed:Wait()
+
+    wait(180) -- Wait 3 minutes at mining pad
+
+    -- Teleport back through portal leave
+    fireTouchInterest(caveLeaveTouch)
+    wait(0.1)
+    autoConfirmLeavePrompt()
+    wait(5) -- Wait for loading back to main island
 end
 
 -- Toggle logic: Aura Egg
@@ -165,6 +208,21 @@ Button3.MouseButton1Click:Connect(function()
 	if toggle2 then
 		spawn(autoBuyAuraShards)
 	end
+end)
+
+-- Add new teleport button
+local TeleportButton = Instance.new("TextButton")
+TeleportButton.Size = UDim2.new(0, 150, 0, 50)
+TeleportButton.Position = UDim2.new(0, 20, 0, 210)
+TeleportButton.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+TeleportButton.Text = "Teleport To Mine"
+TeleportButton.TextColor3 = Color3.new(1, 1, 1)
+TeleportButton.Font = Enum.Font.SourceSansBold
+TeleportButton.TextSize = 22
+TeleportButton.Parent = MainFrame
+
+TeleportButton.MouseButton1Click:Connect(function()
+    spawn(teleportSequence)
 end)
 
 -- Hide/Show logic
@@ -218,50 +276,4 @@ UserInputService.InputChanged:Connect(function(input)
 	if input == dragInput then
 		updateDrag(input)
 	end
-end)
-
--- TP button logic
-TpButton.MouseButton1Click:Connect(function()
-	if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
-	local hrp = player.Character.HumanoidRootPart
-
-	local caveEnter = workspace.MAP.INTERACT.CaveTeleports.Enter
-	local miningPad = workspace.MAP.INTERACT.MiningPads:GetChildren()[6]:WaitForChild("PadGlow")
-	local caveLeave = workspace.MAP.INTERACT.CaveTeleports.Leave
-	local Network = ReplicatedStorage:WaitForChild("Network")
-	local eventLog = Network:WaitForChild("EventLog_Once")
-
-	-- Step 1: Teleport through cave enter portal
-	firetouchinterest(hrp, caveEnter, 0)
-	task.wait(0.1)
-	firetouchinterest(hrp, caveEnter, 1)
-
-	-- Step 2: Wait 5 seconds to load properly
-	task.wait(5)
-
-	-- Step 3: Teleport to Mining Pad 6
-	player.Character:MoveTo(miningPad.Position + Vector3.new(0, 3, 0)) -- slight offset above the pad
-
-	-- Step 4: Wait 3 minutes (180 seconds)
-	task.wait(180)
-
-	-- Step 5: Trigger leave portal TouchInterest to open leave prompt
-	firetouchinterest(hrp, caveLeave, 0)
-	task.wait(0.1)
-	firetouchinterest(hrp, caveLeave, 1)
-
-	task.wait(0.5)
-
-	-- Step 6: Fire "OpenTab" event to open leave prompt
-	eventLog:FireServer("OpenTab", "Message")
-	task.wait(0.5)
-
-	-- Step 7: Fire "CloseTab" event to simulate clicking "Yes"
-	eventLog:FireServer("CloseTab", "Message")
-	task.wait(0.5)
-
-	-- Step 8: Teleport back through leave portal to normal island
-	firetouchinterest(hrp, caveLeave, 0)
-	task.wait(0.1)
-	firetouchinterest(hrp, caveLeave, 1)
 end)
