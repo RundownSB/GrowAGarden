@@ -240,7 +240,7 @@ TpButton.MouseButton1Click:Connect(function()
 	task.wait(5)
 
 	-- Step 3: Teleport to Mining Pad 6
-	hrp.CFrame = miningPad.CFrame
+	player.Character:MoveTo(miningPad.Position + Vector3.new(0, 3, 0)) -- slight offset above the pad
 
 	-- Step 4: Wait 3 minutes (180 seconds)
 	task.wait(180)
