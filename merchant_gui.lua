@@ -6,10 +6,21 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local LocalPlayer = Players.LocalPlayer or Players:GetPropertyChangedSignal("LocalPlayer"):Wait()
 
--- Finds which of the first 6 farm plots belongs to the player
 local function getMyPlot()
+    -- Check the first plot separately (workspace.Farm.Farm)
+    local plot1 = workspace.Farm:FindFirstChild("Farm")
+    if plot1 then
+        local owner1 = plot1:FindFirstChild("Important") 
+                       and plot1.Important:FindFirstChild("Data")
+                       and plot1.Important.Data:FindFirstChild("Owner")
+        if owner1 and owner1.Value == LocalPlayer.Name then
+            return plot1
+        end
+    end
+
+    -- Check the other plots (children 2 to 6)
     local farmChildren = workspace.Farm:GetChildren()
-    for i = 1, math.min(6, #farmChildren) do
+    for i = 2, math.min(6, #farmChildren) do
         local plot = farmChildren[i]
         local owner = plot:FindFirstChild("Important")
             and plot.Important:FindFirstChild("Data")
@@ -18,8 +29,10 @@ local function getMyPlot()
             return plot
         end
     end
+
     return nil
 end
+
 
 -- Improved autoPlant function
 local function autoPlant(seedName, plot)
