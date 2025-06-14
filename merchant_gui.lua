@@ -584,19 +584,15 @@ autoPlantToggle[2].MouseButton1Click:Connect(function()
     if autoPlantEnabled then
         task.spawn(function()
             while autoPlantEnabled do
-                local myPlot = getMyPlot()
-                if myPlot then
-                    for _, seedName in ipairs(seedList) do
-                        autoPlant(seedName, myPlot)
-                    end
-                else
-                    warn("No owned plot found!")
+                for _, seedName in ipairs(seedList) do
+                    autoPlant(seedName)
                 end
                 task.wait(2)
             end
         end)
     end
 end)
+
 
 -- Toggle GUI Button
 local toggleGuiButton = Instance.new("TextButton")
