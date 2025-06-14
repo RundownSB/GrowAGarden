@@ -557,18 +557,26 @@ end
 
 
 local function getMyPlot()
-    local farmChildren = workspace.Farm:GetChildren()
-    for i = 1, math.min(6, #farmChildren) do
-        local plot = farmChildren[i]
-        local ownerValue = plot:FindFirstChild("Important") 
-                         and plot.Important:FindFirstChild("Data") 
-                         and plot.Important.Data:FindFirstChild("Owner")
-        if ownerValue and ownerValue.Value == game.Players.LocalPlayer.Name then
+    local myFarm = workspace.Farm:FindFirstChild("Farm")
+    if not myFarm then return nil end
+
+    local myFarmNumber = myFarm:FindFirstChild("Important") 
+        and myFarm.Important:FindFirstChild("Data") 
+        and myFarm.Important.Data:FindFirstChild("Farm_Number")
+    if not myFarmNumber then return nil end
+
+    for _, plot in ipairs(workspace.Farm:GetChildren()) do
+        local numVal = plot:FindFirstChild("Important")
+            and plot.Important:FindFirstChild("Data")
+            and plot.Important.Data:FindFirstChild("Farm_Number")
+        if numVal and numVal.Value == myFarmNumber.Value then
             return plot
         end
     end
+
     return nil
 end
+
 
 autoPlantToggle[2].MouseButton1Click:Connect(function()
     autoPlantEnabled = not autoPlantEnabled
