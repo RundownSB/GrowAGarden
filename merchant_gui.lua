@@ -76,20 +76,6 @@ local function autoPlant(seedName, plot)
 end
 
 
-
-local function autoPlant(seedName, plot)
-    if not plot then return end  -- use the passed plot directly
-
-    local farmingRemote = ReplicatedStorage:FindFirstChild("GameEvents"):FindFirstChild("Farming_Plant")
-    if farmingRemote then
-        pcall(function()
-            farmingRemote:FireServer(seedName, plot)
-        end)
-    end
-end
-
-
-
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 local oldGui = PlayerGui:FindFirstChild("MainGui")
