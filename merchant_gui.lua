@@ -5,6 +5,22 @@ local UIS = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local LocalPlayer = Players.LocalPlayer or Players:GetPropertyChangedSignal("LocalPlayer"):Wait()
+
+-- Finds which of the first 6 farm plots belongs to the player
+local function getMyPlot()
+    local farmChildren = workspace.Farm:GetChildren()
+    for i = 1, math.min(6, #farmChildren) do
+        local plot = farmChildren[i]
+        local owner = plot:FindFirstChild("Important")
+            and plot.Important:FindFirstChild("Data")
+            and plot.Important.Data:FindFirstChild("Owner")
+        if owner and owner.Value == LocalPlayer.Name then
+            return plot
+        end
+    end
+    return nil
+end
+
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 local oldGui = PlayerGui:FindFirstChild("MainGui")
