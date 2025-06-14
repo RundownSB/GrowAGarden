@@ -574,14 +574,16 @@ autoPlantToggle[2].MouseButton1Click:Connect(function()
                 if myPlot then
                     for _, seedName in ipairs(seedList) do
                         autoPlant(seedName, myPlot)
+                        task.wait(0.5)  -- wait half a second between planting seeds
                     end
                 else
                     warn("No owned plot found!")
                 end
-                task.wait(2)
+                task.wait(2)  -- wait 2 seconds before starting the next planting cycle
             end
         end)
     end
+end)
 end)
 
 
