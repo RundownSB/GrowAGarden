@@ -212,7 +212,6 @@ end
 local autoSell = createToggleButton(MainTabFrame, "Auto Sell", 5)
 local autoFastCollect = createToggleButton(MainTabFrame, "Auto Fast Collect", 55) -- was 35
 local autoBuySeedsToggle = createToggleButton(MerchantsTabFrame, "Auto Buy Seeds", 5)
-local autoPlantToggle = createToggleButton(MerchantsTabFrame, "Auto Plant", 135)
 
 -- The seed list already defined earlier (used by both buy seed functions)
 local seedList = {
@@ -276,7 +275,7 @@ end)
 local selling = false
 local autoBuySeeds = false
 local fastCollectEnabled = false
-local autoPlantEnabled = false
+
 
 -- Require CollectController module (for fast collect)
 local CollectController = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("CollectController"))
