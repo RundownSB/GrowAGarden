@@ -21,6 +21,39 @@ local function getMyPlot()
     return nil
 end
 
+-- Improved autoPlant function
+local function autoPlant(seedName, plot)
+    if not plot then
+        print("autoPlant: plot is nil, can't plant seed", seedName)
+        return
+    end
+
+    local pos
+    if plot.PrimaryPart then
+        pos = plot.PrimaryPart.Position
+    else
+        local basePart = plot:FindFirstChildWhichIsA("BasePart")
+        if basePart then
+            pos = basePart.Position
+        else
+            print("autoPlant: no valid part found in plot", plot.Name)
+            return
+        end
+    end
+
+    local farmingRemote = ReplicatedStorage:FindFirstChild("GameEvents"):FindFirstChild("Plant_RE")
+    if farmingRemote then
+        pcall(function()
+            farmingRemote:FireServer(pos, seedName)
+            print("Planted", seedName, "at", pos)
+        end)
+    else
+        print("autoPlant: Plant_RE remote not found")
+    end
+end
+
+
+
 local function autoPlant(seedName, plot)
     if not plot then return end  -- use the passed plot directly
 
