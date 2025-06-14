@@ -6,6 +6,16 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local LocalPlayer = Players.LocalPlayer or Players:GetPropertyChangedSignal("LocalPlayer"):Wait()
 
+local plantPositions = {
+    Vector3.new(13.7241, 0.1355, -112.0255),
+    Vector3.new(14.5795, 0.1355, -112.0275),
+    Vector3.new(15.4167, 0.1355, -112.0282),
+    Vector3.new(16.2541, 0.1355, -112.029),
+    Vector3.new(17.1101, 0.1355, -112.0301),
+    Vector3.new(17.9389, 0.1355, -112.031)
+}
+
+
 local function getMyPlot()
     -- Check the first plot separately (workspace.Farm.Farm)
     local plot1 = workspace.Farm:FindFirstChild("Farm")
@@ -568,26 +578,15 @@ end
 
 
 
-local function getMyPlot()
-    local myFarm = workspace.Farm:FindFirstChild("Farm")
-    if not myFarm then return nil end
-
-    local myFarmNumber = myFarm:FindFirstChild("Important") 
-        and myFarm.Important:FindFirstChild("Data") 
-        and myFarm.Important.Data:FindFirstChild("Farm_Number")
-    if not myFarmNumber then return nil end
-
-    for _, plot in ipairs(workspace.Farm:GetChildren()) do
-        local numVal = plot:FindFirstChild("Important")
-            and plot.Important:FindFirstChild("Data")
-            and plot.Important.Data:FindFirstChild("Farm_Number")
-        if numVal and numVal.Value == myFarmNumber.Value then
-            return plot
-        end
+local function autoPlant(seedName, position)
+    local farmingRemote = ReplicatedStorage:FindFirstChild("GameEvents"):FindFirstChild("Plant_RE")
+    if farmingRemote then
+        pcall(function()
+            farmingRemote:FireServer(vector.create(position.X, position.Y, position.Z), seedName)
+        end)
     end
-
-    return nil
 end
+
 
 
 
@@ -598,13 +597,17 @@ autoPlantToggle[2].MouseButton1Click:Connect(function()
         task.spawn(function()
             while autoPlantEnabled do
                 for _, seedName in ipairs(seedList) do
-                    autoPlant(seedName)
+                    for _, pos in ipairs(plantPositions) do
+                        autoPlant(seedName, pos)
+                        task.wait(0.3)  -- small delay between plants
+                    end
                 end
                 task.wait(2)
             end
         end)
     end
 end)
+
 
 
 -- Toggle GUI Button
