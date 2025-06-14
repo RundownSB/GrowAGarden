@@ -275,6 +275,7 @@ end)
 local selling = false
 local autoBuySeeds = false
 local fastCollectEnabled = false
+local autoPlantEnabled = false
 
 -- Require CollectController module (for fast collect)
 local CollectController = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("CollectController"))
