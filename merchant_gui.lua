@@ -578,6 +578,7 @@ local function getMyPlot()
 end
 
 
+
 autoPlantToggle[2].MouseButton1Click:Connect(function()
     autoPlantEnabled = not autoPlantEnabled
     autoPlantToggle[3].Visible = autoPlantEnabled
