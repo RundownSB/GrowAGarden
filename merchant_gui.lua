@@ -486,20 +486,40 @@ local function autoPlant(seedName)
     end)
 end
 
+local function getMyPlot()
+    local farmChildren = workspace.Farm:GetChildren()
+    for i = 1, math.min(6, #farmChildren) do
+        local plot = farmChildren[i]
+        local ownerValue = plot:FindFirstChild("Important") 
+                         and plot.Important:FindFirstChild("Data") 
+                         and plot.Important.Data:FindFirstChild("Owner")
+        if ownerValue and ownerValue.Value == game.Players.LocalPlayer.Name then
+            return plot
+        end
+    end
+    return nil
+end
+
 autoPlantToggle[2].MouseButton1Click:Connect(function()
     autoPlantEnabled = not autoPlantEnabled
     autoPlantToggle[3].Visible = autoPlantEnabled
     if autoPlantEnabled then
         task.spawn(function()
             while autoPlantEnabled do
-                for _, seedName in ipairs(seedList) do
-                    autoPlant(seedName)
+                local myPlot = getMyPlot()
+                if myPlot then
+                    for _, seedName in ipairs(seedList) do
+                        autoPlant(seedName, myPlot)  -- make sure autoPlant can handle this!
+                    end
+                else
+                    warn("No owned plot found!")
                 end
                 task.wait(2)
             end
         end)
     end
 end)
+
 
 
 -- Toggle GUI Button
