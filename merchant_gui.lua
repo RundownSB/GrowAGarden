@@ -473,7 +473,33 @@ buySelectedGearToggle[2].MouseButton1Click:Connect(function()
     end
 end)
 
+local autoPlantToggle = createToggleButton(MerchantsTabFrame, "Auto Plant", 130) -- adjust Y pos if needed
+local autoPlantEnabled = false
 
+local function autoPlant(seedName)
+    local args = {
+        Vector3.new(61.70445251464844, 0.13552704453468323, -85.30577087402344),
+        seedName
+    }
+    pcall(function()
+        ReplicatedStorage.GameEvents.Plant_RE:FireServer(unpack(args))
+    end)
+end
+
+autoPlantToggle[2].MouseButton1Click:Connect(function()
+    autoPlantEnabled = not autoPlantEnabled
+    autoPlantToggle[3].Visible = autoPlantEnabled
+    if autoPlantEnabled then
+        task.spawn(function()
+            while autoPlantEnabled do
+                for _, seedName in ipairs(seedList) do
+                    autoPlant(seedName)
+                end
+                task.wait(2)
+            end
+        end)
+    end
+end)
 
 
 -- Toggle GUI Button
