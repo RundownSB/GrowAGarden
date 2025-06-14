@@ -540,15 +540,19 @@ local autoPlantToggle = createToggleButton(MerchantsTabFrame, "Auto Plant", 130)
 local autoPlantEnabled = false
 
 local function autoPlant(seedName, plot)
-    if not plot then return end
-
-    local farmingRemote = ReplicatedStorage:FindFirstChild("GameEvents"):FindFirstChild("Farming_Plant")
+    local farmingRemote = ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("Plant_RE")
     if farmingRemote then
-        pcall(function()
-            farmingRemote:FireServer(seedName, plot)
-        end)
+        local position = plot:FindFirstChild("Important")
+                             and plot.Important:FindFirstChild("Data")
+                             and plot.Important.Data:FindFirstChild("Position")
+        if position then
+            pcall(function()
+                farmingRemote:FireServer(position.Value, seedName)
+            end)
+        end
     end
 end
+
 
 
 local function getMyPlot()
@@ -575,12 +579,11 @@ autoPlantToggle[2].MouseButton1Click:Connect(function()
                 if myPlot then
                     for _, seedName in ipairs(seedList) do
                         autoPlant(seedName, myPlot)
-                        task.wait(0.5)  -- wait half a second between planting seeds
                     end
                 else
                     warn("No owned plot found!")
                 end
-                task.wait(2)  -- wait 2 seconds before starting the next planting cycle
+                task.wait(2)
             end
         end)
     end
