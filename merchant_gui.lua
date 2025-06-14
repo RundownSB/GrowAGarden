@@ -21,9 +21,8 @@ local function getMyPlot()
     return nil
 end
 
-local function autoPlant(seedName)
-    local plot = getMyPlot()
-    if not plot then return end
+local function autoPlant(seedName, plot)
+    if not plot then return end  -- use the passed plot directly
 
     local farmingRemote = ReplicatedStorage:FindFirstChild("GameEvents"):FindFirstChild("Farming_Plant")
     if farmingRemote then
