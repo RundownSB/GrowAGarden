@@ -505,15 +505,17 @@ end)
 local autoPlantToggle = createToggleButton(MerchantsTabFrame, "Auto Plant", 130) -- adjust Y pos if needed
 local autoPlantEnabled = false
 
-local function autoPlant(seedName)
-    local args = {
-        Vector3.new(61.70445251464844, 0.13552704453468323, -85.30577087402344),
-        seedName
-    }
-    pcall(function()
-        ReplicatedStorage.GameEvents.Plant_RE:FireServer(unpack(args))
-    end)
+local function autoPlant(seedName, plot)
+    if not plot then return end
+
+    local farmingRemote = ReplicatedStorage:FindFirstChild("GameEvents"):FindFirstChild("Farming_Plant")
+    if farmingRemote then
+        pcall(function()
+            farmingRemote:FireServer(seedName, plot)
+        end)
+    end
 end
+
 
 local function getMyPlot()
     local farmChildren = workspace.Farm:GetChildren()
@@ -538,7 +540,7 @@ autoPlantToggle[2].MouseButton1Click:Connect(function()
                 local myPlot = getMyPlot()
                 if myPlot then
                     for _, seedName in ipairs(seedList) do
-                        autoPlant(seedName, myPlot)  -- make sure autoPlant can handle this!
+                        autoPlant(seedName, myPlot)
                     end
                 else
                     warn("No owned plot found!")
