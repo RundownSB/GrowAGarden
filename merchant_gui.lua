@@ -585,9 +585,6 @@ autoPlantToggle[2].MouseButton1Click:Connect(function()
         end)
     end
 end)
-end)
-
-
 
 -- Toggle GUI Button
 local toggleGuiButton = Instance.new("TextButton")
