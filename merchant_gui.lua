@@ -519,6 +519,11 @@ task.spawn(function()
 	end
 end)
 
+print("AutoPlant button:", autoPlantToggle, autoPlantToggle:IsA("TextButton"))
+autoPlantToggle.MouseButton1Click:Connect(function()
+    print("Auto Plant clicked")
+end)
+
 
 -- Toggle GUI Button
 local toggleGuiButton = Instance.new("TextButton")
