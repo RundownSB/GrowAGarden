@@ -478,80 +478,118 @@ end)
 local autoPlantToggle = createToggleButton(MerchantsTabFrame, "Auto Plant", 130) -- adjust Y pos if needed
 local autoPlantEnabled = false
 
+
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local plantLocationsFolder = workspace.Farm.Farm.Important:WaitForChild("Plant_Locations")
-local canPlantValue = plantLocationsFolder:WaitForChild("Can_Plant")
-local plantRemote = ReplicatedStorage.GameEvents:WaitForChild("Plant_RE")
+local Plant_RE = ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("Plant_RE")
 
-local seedIndex = 1 -- Used to cycle through seeds
+local player = Players.LocalPlayer
+local backpack = player:WaitForChild("Backpack")
+local character = player.Character or player.CharacterAdded:Wait()
 
--- Toggle button functionality
-local autoPlantEnabled = false
+-- Seed list (without " Seed" suffix)
+local seedList = {
+    "Carrot", "Strawberry", "Blueberry", "Orange Tulip", "Tomato", "Corn",
+    "Daffodil", "Watermelon", "Pumpkin", "Apple", "Bamboo", "Coconut",
+    "Cactus", "Dragon Fruit", "Mango", "Grape", "Mushroom", "Pepper",
+    "Cacao", "Beanstalk", "Ember Lily", "Sugar Apple"
+}
 
-autoPlantToggle[2].MouseButton1Click:Connect(function()
-    autoPlantEnabled = not autoPlantEnabled
-    autoPlantToggle[3].Visible = autoPlantEnabled -- show the light
-end)
+-- Corners for the farm rectangles
+local corners1 = {
+    Vector3.new(-2.995, 3.310, -76.030),
+    Vector3.new(-2.585, 3.510, -134.168),
+    Vector3.new(26.753, 3.110, -133.151),
+    Vector3.new(26.499, 3.110, -76.296)
+}
+local corners2 = {
+    Vector3.new(41.352, 3.110, -76.546),
+    Vector3.new(41.325, 3.110, -133.498),
+    Vector3.new(70.657, 3.110, -133.540),
+    Vector3.new(70.601, 3.110, -76.555)
+}
 
+local function generatePositions(corners, step)
+    step = step or 3
+    local positions = {}
 
--- Check if a plant location is empty (no child named "Plant")
-local function isEmpty(location)
-	return not location:FindFirstChild("Plant")
+    local xs = {corners[1].X, corners[2].X, corners[3].X, corners[4].X}
+    local zs = {corners[1].Z, corners[2].Z, corners[3].Z, corners[4].Z}
+    local ys = {corners[1].Y, corners[2].Y, corners[3].Y, corners[4].Y}
+
+    local minX, maxX = math.min(table.unpack(xs)), math.max(table.unpack(xs))
+    local minZ, maxZ = math.min(table.unpack(zs)), math.max(table.unpack(zs))
+    local avgY = (ys[1] + ys[2] + ys[3] + ys[4]) / 4
+
+    for x = minX, maxX, step do
+        for z = minZ, maxZ, step do
+            table.insert(positions, Vector3.new(x, avgY, z))
+        end
+    end
+
+    return positions
 end
 
--- Auto-plant loop
-task.spawn(function()
-	while true do
-		if autoPlantEnabled then
-			for _, location in pairs(plantLocationsFolder:GetChildren()) do
-				if location:IsA("BasePart") and isEmpty(location) then
-					local pos = location.Position
-					local seedName = seedList[seedIndex]
+local allPositions = {}
+for _, pos in ipairs(generatePositions(corners1)) do
+    table.insert(allPositions, pos)
+end
+for _, pos in ipairs(generatePositions(corners2)) do
+    table.insert(allPositions, pos)
+end
 
-					plantRemote:FireServer(Vector3.new(pos.X, pos.Y, pos.Z), seedName)
-
-					-- Cycle to next seed
-					seedIndex = seedIndex + 1
-					if seedIndex > #seedList then
-						seedIndex = 1
-					end
-				end
-			end
-		end
-		task.wait(3)
-	end
-end)
+local function findSeedTool(seedName)
+    local prefix = seedName .. " Seed"
+    for _, tool in pairs(backpack:GetChildren()) do
+        if tool:IsA("Tool") and tool.Name:sub(1, #prefix) == prefix then
+            return tool
+        end
+    end
+    for _, tool in pairs(character:GetChildren()) do
+        if tool:IsA("Tool") and tool.Name:sub(1, #prefix) == prefix then
+            return tool
+        end
+    end
+    return nil
+end
 
 autoPlantToggle[2].MouseButton1Click:Connect(function()
     autoPlantEnabled = not autoPlantEnabled
-    autoPlantToggle[3].Visible = autoPlantEnabled
-    print("AutoPlant enabled:", autoPlantEnabled)
-end)
+    autoPlantToggle[2].Text = "Auto Plant: " .. (autoPlantEnabled and "ON" or "OFF")
+    autoPlantToggle[2].BackgroundColor3 = autoPlantEnabled and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(70, 70, 70)
 
-task.spawn(function()
-    while true do
-        if autoPlantEnabled then
-            print("AutoPlant running...")
+    if autoPlantEnabled then
+        task.spawn(function()
+            local seedIndex = 1
+            while autoPlantEnabled do
+                for _, pos in ipairs(allPositions) do
+                    if not autoPlantEnabled then break end
 
-            local emptyCount = 0
-            for _, location in pairs(plantLocationsFolder:GetChildren()) do
-                if location:IsA("BasePart") then
-                    local hasPlant = location:FindFirstChild("Plant")
-                    print("Checking location:", location.Name, "Has plant:", tostring(hasPlant ~= nil))
+                    local seedName = seedList[seedIndex]
+                    local tool = findSeedTool(seedName)
+                    if tool then
+                        tool.Parent = character
+                        local success, err = pcall(function()
+                            Plant_RE:FireServer(pos, seedName)
+                        end)
+                        if not success then
+                            warn("Failed to plant:", err)
+                        end
+                        task.wait(0.2)
+                    else
+                        warn("Seed tool not found for:", seedName)
+                    end
 
-                    if not hasPlant then
-                        emptyCount = emptyCount + 1
+                    seedIndex = seedIndex + 1
+                    if seedIndex > #seedList then
+                        seedIndex = 1
                     end
                 end
+                task.wait(1)
             end
-
-            print("Empty spots:", emptyCount)
-        end
-
-        task.wait(3)
+        end)
     end
 end)
-
 
 -- Toggle GUI Button
 local toggleGuiButton = Instance.new("TextButton")
