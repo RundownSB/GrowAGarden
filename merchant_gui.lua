@@ -35,7 +35,7 @@ TitleLabel.Size = UDim2.new(1, 0, 0, 34) -- was 26 height
 TitleLabel.Font = Enum.Font.SourceSansBold
 TitleLabel.TextSize = 30 -- increased from 22
 TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-TitleLabel.Text = "Pets Go | SB |"
+TitleLabel.Text = "Grow A Garden | SB |"
 TitleLabel.TextStrokeTransparency = 0.7
 TitleLabel.TextScaled = false
 TitleLabel.TextWrapped = false
@@ -152,7 +152,7 @@ local autoSell = createToggleButton(MainTabFrame, "Auto Sell", 5)
 local autoFastCollect = createToggleButton(MainTabFrame, "Auto Fast Collect", 55) -- was 35
 local autoBuySeedsToggle = createToggleButton(MerchantsTabFrame, "Auto Buy Seeds", 5)
 
--- The seed list already defined earlier (used by both buy seed functions)
+-- The seed list  (used by both buy seed functions)
 local seedList = {
     "Carrot", "Strawberry", "BlueBerry", "Orange Tulip", "Tomato", "Corn",
     "Daffodil", "Watermelon", "Pumpkin", "Apple", "Bamboo", "Coconut",
@@ -281,7 +281,7 @@ end)
 
 -- === Buy Selected Seeds with collapsible list ===
 
-local buySelectedSeedsToggle = createToggleButton(MerchantsTabFrame, "Buy Selected Seeds", 45) -- was 95 (35+60)
+local buySelectedSeedsToggle = createToggleButton(MerchantsTabFrame, "Buy Selected Seeds", 45)
 
 -- Add expand/collapse button next to label
 local expandCollapseBtn = Instance.new("TextButton")
@@ -477,54 +477,6 @@ end)
 
 local autoPlantToggle = createToggleButton(MerchantsTabFrame, "Auto Plant", 130) -- adjust Y pos if needed
 local autoPlantEnabled = false
-
-local function autoPlant(seedName, plot)
-    local farmingRemote = ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("Plant_RE")
-    if farmingRemote then
-        local position = plot:FindFirstChild("Important")
-                             and plot.Important:FindFirstChild("Data")
-                             and plot.Important.Data:FindFirstChild("Position")
-        if position then
-            pcall(function()
-                farmingRemote:FireServer(position.Value, seedName)
-            end)
-        end
-    end
-end
-
-
-
-local function autoPlant(seedName, position)
-    local farmingRemote = ReplicatedStorage:FindFirstChild("GameEvents"):FindFirstChild("Plant_RE")
-    if farmingRemote then
-        pcall(function()
-            farmingRemote:FireServer(vector.create(position.X, position.Y, position.Z), seedName)
-        end)
-    end
-end
-
-
-
-
-autoPlantToggle[2].MouseButton1Click:Connect(function()
-    autoPlantEnabled = not autoPlantEnabled
-    autoPlantToggle[3].Visible = autoPlantEnabled
-    if autoPlantEnabled then
-        task.spawn(function()
-            while autoPlantEnabled do
-                for _, seedName in ipairs(seedList) do
-                    for _, pos in ipairs(plantPositions) do
-                        autoPlant(seedName, pos)
-                        task.wait(0.3)  -- small delay between plants
-                    end
-                end
-                task.wait(2)
-            end
-        end)
-    end
-end)
-
-
 
 -- Toggle GUI Button
 local toggleGuiButton = Instance.new("TextButton")
