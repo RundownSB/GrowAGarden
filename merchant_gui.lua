@@ -555,8 +555,8 @@ end
 
 autoPlantToggle[2].MouseButton1Click:Connect(function()
     autoPlantEnabled = not autoPlantEnabled
-    autoPlantToggle[2].Text = "Auto Plant: " .. (autoPlantEnabled and "ON" or "OFF")
-    autoPlantToggle[2].BackgroundColor3 = autoPlantEnabled and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(70, 70, 70)
+    -- Do NOT change the text
+    autoPlantToggle[2].BackgroundColor3 = autoPlantEnabled and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(70, 70, 70)
 
     if autoPlantEnabled then
         task.spawn(function()
