@@ -502,7 +502,7 @@ end
 -- Auto-plant loop
 task.spawn(function()
 	while true do
-		if autoPlantEnabled and canPlantValue.Value then
+		if autoPlantEnabled then
 			for _, location in pairs(plantLocationsFolder:GetChildren()) do
 				if location:IsA("BasePart") and isEmpty(location) then
 					local pos = location.Position
