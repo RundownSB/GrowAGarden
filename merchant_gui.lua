@@ -478,6 +478,48 @@ end)
 local autoPlantToggle = createToggleButton(MerchantsTabFrame, "Auto Plant", 130) -- adjust Y pos if needed
 local autoPlantEnabled = false
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local plantLocationsFolder = workspace.Farm.Farm.Important:WaitForChild("Plant_Locations")
+local canPlantValue = plantLocationsFolder:WaitForChild("Can_Plant")
+local plantRemote = ReplicatedStorage.GameEvents:WaitForChild("Plant_RE")
+
+local seedIndex = 1 -- Used to cycle through seeds
+
+-- Toggle button functionality
+autoPlantToggle.MouseButton1Click:Connect(function()
+	autoPlantEnabled = not autoPlantEnabled
+	autoPlantToggle.Text = autoPlantEnabled and "Auto Plant: ON" or "Auto Plant: OFF"
+end)
+
+-- Check if a plant location is empty (no child named "Plant")
+local function isEmpty(location)
+	return not location:FindFirstChild("Plant")
+end
+
+-- Auto-plant loop
+task.spawn(function()
+	while true do
+		if autoPlantEnabled and canPlantValue.Value then
+			for _, location in pairs(plantLocationsFolder:GetChildren()) do
+				if location:IsA("BasePart") and isEmpty(location) then
+					local pos = location.Position
+					local seedName = seedList[seedIndex]
+
+					plantRemote:FireServer(Vector3.new(pos.X, pos.Y, pos.Z), seedName)
+
+					-- Cycle to next seed
+					seedIndex += 1
+					if seedIndex > #seedList then
+						seedIndex = 1
+					end
+				end
+			end
+		end
+		task.wait(3)
+	end
+end)
+
+
 -- Toggle GUI Button
 local toggleGuiButton = Instance.new("TextButton")
 toggleGuiButton.Name = "ToggleGuiButton"
