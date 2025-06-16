@@ -555,8 +555,8 @@ end
 
 autoPlantToggle[2].MouseButton1Click:Connect(function()
     autoPlantEnabled = not autoPlantEnabled
-    -- Do NOT change the text
-    autoPlantToggle[2].BackgroundColor3 = autoPlantEnabled and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(70, 70, 70)
+    autoPlantToggle[2].Text = ""
+autoPlantToggle[3].Visible = autoPlantEnabled
 
     if autoPlantEnabled then
         task.spawn(function()
@@ -594,7 +594,7 @@ end)
 -- Toggle GUI Button
 local toggleGuiButton = Instance.new("TextButton")
 toggleGuiButton.Name = "ToggleGuiButton"
-toggleGuiButton.Text = "☰"
+toggleGuiButton.Text = "hide"
 toggleGuiButton.TextColor3 = Color3.new(1, 1, 1)
 toggleGuiButton.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
 toggleGuiButton.Size = UDim2.new(0, 38, 0, 38) -- was 30 x 30
