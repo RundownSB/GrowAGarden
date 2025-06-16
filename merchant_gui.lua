@@ -475,7 +475,7 @@ buySelectedGearToggle[2].MouseButton1Click:Connect(function()
     end
 end)
 
-local autoPlantToggle = createToggleButton(MerchantsTabFrame, "Auto Plant", 130) -- adjust Y pos if needed
+local autoPlantToggle = createToggleButton(MainTabFrame, "Auto Plant", 130) -- adjust Y pos if needed
 local autoPlantEnabled = false
 
 
