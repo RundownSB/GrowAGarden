@@ -486,10 +486,13 @@ local plantRemote = ReplicatedStorage.GameEvents:WaitForChild("Plant_RE")
 local seedIndex = 1 -- Used to cycle through seeds
 
 -- Toggle button functionality
-autoPlantToggle.MouseButton1Click:Connect(function()
-	autoPlantEnabled = not autoPlantEnabled
-	autoPlantToggle.Text = autoPlantEnabled and "Auto Plant: ON" or "Auto Plant: OFF"
+local autoPlantEnabled = false
+
+autoPlantToggle[2].MouseButton1Click:Connect(function()
+    autoPlantEnabled = not autoPlantEnabled
+    autoPlantToggle[3].Visible = autoPlantEnabled -- show the light
 end)
+
 
 -- Check if a plant location is empty (no child named "Plant")
 local function isEmpty(location)
