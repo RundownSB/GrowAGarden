@@ -214,7 +214,7 @@ end)
 local selling = false
 local autoBuySeeds = false
 local fastCollectEnabled = false
-
+local isSelling = false
 
 -- Require CollectController module (for fast collect)
 local CollectController = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("CollectController"))
@@ -224,7 +224,8 @@ CollectController.Start(CollectController)
 autoSell[2].MouseButton1Click:Connect(function()
     if not selling then
         selling = true
-        autoSell[3].Visible = true
+        isSelling = true 
+autoSell[3].Visible = true
         local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
         local hrp = character:WaitForChild("HumanoidRootPart")
         local originalPos = hrp.CFrame
@@ -232,7 +233,8 @@ autoSell[2].MouseButton1Click:Connect(function()
         task.wait(1)
         ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("Sell_Inventory"):FireServer()
         hrp.CFrame = originalPos
-        selling = false
+       isSelling = false
+ selling = false
         autoSell[3].Visible = false
     else
         selling = false
@@ -243,20 +245,27 @@ end)
 local fastCollectEnabled = false
 
 local function fastCollectLoop()
+    local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    local hrp = character:WaitForChild("HumanoidRootPart")
+    
     while fastCollectEnabled do
-        for _, pos in ipairs(allPositions) do
-            if not fastCollectEnabled then break end
-            
-            hrp.CFrame = CFrame.new(pos)
-            task.wait(0.3)
-            
-            pcall(function()
-                CollectController:Collect()
-            end)
-            
-            task.wait(0.2)
+        if isSelling then
+            task.wait(0.5) -- Wait and skip teleport while selling
+        else
+            for _, pos in ipairs(allPositions) do
+                if not fastCollectEnabled or isSelling then break end
+                
+                hrp.CFrame = CFrame.new(pos)
+                task.wait(0.3)
+                
+                pcall(function()
+                    CollectController:Collect()
+                end)
+                
+                task.wait(0.2)
+            end
+            task.wait(1)
         end
-        task.wait(1)
     end
 end
 
