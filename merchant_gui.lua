@@ -511,7 +511,7 @@ task.spawn(function()
 					plantRemote:FireServer(Vector3.new(pos.X, pos.Y, pos.Z), seedName)
 
 					-- Cycle to next seed
-					seedIndex += 1
+					seedIndex = seedIndex + 1
 					if seedIndex > #seedList then
 						seedIndex = 1
 					end
@@ -521,6 +521,37 @@ task.spawn(function()
 		task.wait(3)
 	end
 end)
+
+autoPlantToggle[2].MouseButton1Click:Connect(function()
+    autoPlantEnabled = not autoPlantEnabled
+    autoPlantToggle[3].Visible = autoPlantEnabled
+    print("AutoPlant enabled:", autoPlantEnabled)
+end)
+
+task.spawn(function()
+    while true do
+        if autoPlantEnabled then
+            print("AutoPlant running...")
+
+            local emptyCount = 0
+            for _, location in pairs(plantLocationsFolder:GetChildren()) do
+                if location:IsA("BasePart") then
+                    local hasPlant = location:FindFirstChild("Plant")
+                    print("Checking location:", location.Name, "Has plant:", tostring(hasPlant ~= nil))
+
+                    if not hasPlant then
+                        emptyCount = emptyCount + 1
+                    end
+                end
+            end
+
+            print("Empty spots:", emptyCount)
+        end
+
+        task.wait(3)
+    end
+end)
+
 
 -- Toggle GUI Button
 local toggleGuiButton = Instance.new("TextButton")
