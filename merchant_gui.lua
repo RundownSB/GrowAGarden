@@ -153,6 +153,8 @@ local autoFastCollect = createToggleButton(MainTabFrame, "Auto Fast Collect", 55
 local autoBuySeedsToggle = createToggleButton(MerchantsTabFrame, "Auto Buy Seeds", 5)
 local autoHoneyMachineToggle = createToggleButton(MainTabFrame, "Auto Honey Machine", 90)
 local autoPlantToggle = createToggleButton(MainTabFrame, "Auto Plant", 130)
+local eventShopButton = createToggleButton(MerchantsTabFrame, "EventShop", 165) -- Adjust Y position if needed
+
 
 -- The seed list  (used by both buy seed functions)
 local seedList = {
@@ -457,6 +459,17 @@ expandCollapseBtn.MouseButton1Click:Connect(function()
     seedListVisible = not seedListVisible
     SeedSelectionFrame.Visible = seedListVisible
     expandCollapseBtn.Text = seedListVisible and "▼" or "▶"
+
+    -- Hide other merchant buttons if seed list is open
+    for _, child in pairs(MerchantsTabFrame:GetChildren()) do
+        if child:IsA("Frame") 
+           and child ~= autoBuySeedsToggle[1] 
+           and child ~= SeedSelectionFrame
+           and child ~= buySelectedSeedsToggle[1]  -- ADD THIS LINE TO EXCLUDE
+        then
+            child.Visible = not seedListVisible
+        end
+    end  -- <== THIS END closes the for loop
 end)
 
 local buySelectedSeeds = false
@@ -558,7 +571,15 @@ expandGearBtn.MouseButton1Click:Connect(function()
     gearListVisible = not gearListVisible
     GearSelectionFrame.Visible = gearListVisible
     expandGearBtn.Text = gearListVisible and "▼" or "▶"
+
+    -- Hide other merchant buttons if gear list is open
+    for _, child in pairs(MerchantsTabFrame:GetChildren()) do
+        if child:IsA("Frame") and child ~= buySelectedGearToggle[1] and child ~= GearSelectionFrame then
+            child.Visible = not gearListVisible
+        end
+    end
 end)
+
 
 local buySelectedGear = false
 buySelectedGearToggle[2].MouseButton1Click:Connect(function()
@@ -783,7 +804,6 @@ local function autoHoneyMachineLoop()
     task.wait(1.2) -- wait a bit for machine to update
 end
 
-
                 pcall(function()
                     ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("HoneyMachineService_RE"):FireServer("MachineInteract")
                 end)
@@ -832,7 +852,6 @@ autoHoneyMachineToggle[2].MouseButton1Click:Connect(function()
         task.spawn(autoHoneyMachineLoop)
     end
 end)
-
 
 -- Toggle GUI Button
 local toggleGuiButton = Instance.new("TextButton")
