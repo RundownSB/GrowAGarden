@@ -153,7 +153,7 @@ local autoFastCollect = createToggleButton(MainTabFrame, "Auto Fast Collect", 55
 local autoBuySeedsToggle = createToggleButton(MerchantsTabFrame, "Auto Buy Seeds", 5)
 local autoHoneyMachineToggle = createToggleButton(MainTabFrame, "Auto Honey Machine", 90)
 local autoPlantToggle = createToggleButton(MainTabFrame, "Auto Plant", 130)
-local eventShopButton = createToggleButton(MerchantsTabFrame, "EventShop", 165) -- Adjust Y position if needed
+
 
 
 -- The seed list  (used by both buy seed functions)
@@ -502,7 +502,7 @@ local gearList = {
     "Favorite Tool", "Harvest Tool", "Friendship Pot"
 }
 
-local buySelectedGearToggle = createToggleButton(MerchantsTabFrame, "Buy Selected Gear", 95)
+local buySelectedGearToggle = createToggleButton(MerchantsTabFrame, "Buy Selected Gear", 130)
 
 local expandGearBtn = Instance.new("TextButton")
 expandGearBtn.Name = "ExpandGearBtn"
@@ -523,7 +523,7 @@ local GearSelectionFrame = Instance.new("ScrollingFrame")
 GearSelectionFrame.Name = "GearSelectionFrame"
 GearSelectionFrame.Parent = MerchantsTabFrame
 GearSelectionFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-GearSelectionFrame.Position = UDim2.new(0, 8, 0, 150)
+GearSelectionFrame.Position = UDim2.new(0, 8, 0, 180)
 GearSelectionFrame.Size = UDim2.new(0, 540, 0, 250)
 GearSelectionFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 GearSelectionFrame.ScrollBarThickness = 8
@@ -852,6 +852,117 @@ autoHoneyMachineToggle[2].MouseButton1Click:Connect(function()
         task.spawn(autoHoneyMachineLoop)
     end
 end)
+
+
+-- === Buy Selected Event Shop Items with collapsible list ===
+
+local eventShopList = {
+    "Flower Seed Pack", "Lavender", "Nectarshade", "Nectarine", "Hive Fruit", 
+    "Pollen Radar", "Nectar Staff", "Honey Sprinkler", "Bee Egg", "Bee Crate", 
+    "Honey Comb", "Bee Chair", "Honey Torch", "Honey Walkway"
+}
+
+local buySelectedEventShopToggle = createToggleButton(MerchantsTabFrame, "Buy Selected EventShop", 85)
+
+local expandEventShopBtn = Instance.new("TextButton")
+expandEventShopBtn.Name = "ExpandEventShopBtn"
+expandEventShopBtn.Parent = buySelectedEventShopToggle[1]
+expandEventShopBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+expandEventShopBtn.BorderSizePixel = 0
+expandEventShopBtn.Size = UDim2.new(0, 32, 0, 28)
+expandEventShopBtn.Position = UDim2.new(1, -75, 0, 6)
+expandEventShopBtn.Font = Enum.Font.SourceSansBold
+expandEventShopBtn.TextSize = 26
+expandEventShopBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+expandEventShopBtn.Text = "▶"
+expandEventShopBtn.AutoButtonColor = false
+
+local eventShopListVisible = false
+
+local EventShopSelectionFrame = Instance.new("ScrollingFrame")
+EventShopSelectionFrame.Name = "EventShopSelectionFrame"
+EventShopSelectionFrame.Parent = MerchantsTabFrame
+EventShopSelectionFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+EventShopSelectionFrame.Position = UDim2.new(0, 8, 0, 140)
+EventShopSelectionFrame.Size = UDim2.new(0, 540, 0, 330)
+EventShopSelectionFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+EventShopSelectionFrame.ScrollBarThickness = 8
+EventShopSelectionFrame.Visible = false
+
+local eventShopToggles = {}
+
+local function createEventShopToggle(itemName, yPos)
+    local container = Instance.new("Frame")
+    container.Name = itemName .. "Container"
+    container.Parent = EventShopSelectionFrame
+    container.BackgroundTransparency = 1
+    container.Size = UDim2.new(1, -15, 0, 38)
+    container.Position = UDim2.new(0, 5, 0, yPos)
+
+    local label = Instance.new("TextLabel")
+    label.Name = "Label"
+    label.Parent = container
+    label.BackgroundTransparency = 1
+    label.Position = UDim2.new(0, 0, 0, 0)
+    label.Size = UDim2.new(1, -40, 1, 0)
+    label.Font = Enum.Font.SourceSans
+    label.TextSize = 22
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.Text = itemName
+    label.TextXAlignment = Enum.TextXAlignment.Left
+
+    local toggle, light = createToggleSquare(container, UDim2.new(1, -35, 0, 6))
+
+    toggle.MouseButton1Click:Connect(function()
+        light.Visible = not light.Visible
+        eventShopToggles[itemName] = light.Visible
+    end)
+
+    eventShopToggles[itemName] = false
+end
+
+for i, itemName in ipairs(eventShopList) do
+    createEventShopToggle(itemName, (i - 1) * 40)
+end
+
+EventShopSelectionFrame.CanvasSize = UDim2.new(0, 0, 0, #eventShopList * 40)
+
+expandEventShopBtn.MouseButton1Click:Connect(function()
+    eventShopListVisible = not eventShopListVisible
+    EventShopSelectionFrame.Visible = eventShopListVisible
+    expandEventShopBtn.Text = eventShopListVisible and "▼" or "▶"
+
+    -- Hide other merchant buttons if event shop list is open
+    for _, child in pairs(MerchantsTabFrame:GetChildren()) do
+        if child:IsA("Frame") and child ~= buySelectedEventShopToggle[1] and child ~= EventShopSelectionFrame then
+            child.Visible = not eventShopListVisible
+        end
+    end
+end)
+
+local buySelectedEventShop = false
+buySelectedEventShopToggle[2].MouseButton1Click:Connect(function()
+    buySelectedEventShop = not buySelectedEventShop
+    buySelectedEventShopToggle[3].Visible = buySelectedEventShop
+    if buySelectedEventShop then
+        task.spawn(function()
+            while buySelectedEventShop do
+                for itemName, enabled in pairs(eventShopToggles) do
+                    if enabled then
+                        pcall(function()
+                            local args = { itemName }
+                            game:GetService("ReplicatedStorage").GameEvents.BuyEventShopStock:FireServer(unpack(args))
+                        end)
+                        task.wait(0.3)
+                    end
+                end
+                task.wait(1)
+            end
+        end)
+    end
+end)
+
+
 
 -- Toggle GUI Button
 local toggleGuiButton = Instance.new("TextButton")
