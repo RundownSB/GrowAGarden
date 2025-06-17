@@ -302,7 +302,7 @@ local corners2 = {
 }
 
 local function generatePositions(corners, step)
-    step = step or 3
+    step = step or 8
     local positions = {}
 
     local xs = {corners[1].X, corners[2].X, corners[3].X, corners[4].X}
