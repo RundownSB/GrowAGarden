@@ -219,6 +219,8 @@ local fastCollectEnabled = false
 local isSelling = false
 local autoPlantEnabled = false
 local autoHoneyMachine = false
+local targetKg = 10
+
 
 -- Require CollectController module (for fast collect)
 local CollectController = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("CollectController"))
@@ -691,17 +693,95 @@ autoPlantToggle[3].Visible = autoPlantEnabled
     end
 end)
 
--- honey machine 
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Backpack = LocalPlayer.Backpack
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+
+local targetKg = 10
+
+-- Find all pollinated fruits in backpack, returning table {tool=Tool, kg=number}
+local function findPollinatedFruits()
+    local fruits = {}
+
+    for _, tool in pairs(Backpack:GetChildren()) do
+        if tool:IsA("Tool") and tool.Name:find("Pollinated") then
+            -- Extract weight in kg from name, e.g. "[Pollinated, Wet] Strawberry [0.32kg]"
+            local weightStr = tool.Name:match("%[(%d+%.?%d*)kg%]")
+            if weightStr then
+                local weight = tonumber(weightStr)
+                if weight then
+                    table.insert(fruits, {tool = tool, kg = weight})
+                end
+            end
+        end
+    end
+
+    return fruits
+end
+
+-- Find combo (1 or 2 fruits) closest to targetKg
+local function findBestComboFlexible(fruits, targetKg)
+    local bestCombo = nil
+    local bestDiff = math.huge
+
+    -- Single fruits
+    for _, f in ipairs(fruits) do
+        local diff = math.abs(targetKg - f.kg)
+        if diff < bestDiff then
+            bestDiff = diff
+            bestCombo = {f}
+        end
+    end
+
+    -- Pairs
+    for i = 1, #fruits do
+        for j = i + 1, #fruits do
+            local totalKg = fruits[i].kg + fruits[j].kg
+            local diff = math.abs(targetKg - totalKg)
+            if diff < bestDiff then
+                bestDiff = diff
+                bestCombo = {fruits[i], fruits[j]}
+            end
+        end
+    end
+
+    return bestCombo
+end
+
+-- Auto honey machine loop
 local function autoHoneyMachineLoop()
     while autoHoneyMachine do
-        pcall(function()
-            local args = { "MachineInteract" }
-            game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("HoneyMachineService_RE"):FireServer(unpack(args))
-        end)
-        task.wait(1) -- Adjust delay as needed
+        local fruits = findPollinatedFruits()
+        if #fruits == 0 then
+            warn("No pollinated fruits found in backpack!")
+            break
+        end
+
+        local combo = findBestComboFlexible(fruits, targetKg)
+        if combo then
+            -- Equip all fruits in the combo
+            for _, fruitData in ipairs(combo) do
+                fruitData.tool.Parent = Character
+            end
+
+            -- Fire honey machine event
+            pcall(function()
+                local args = { "MachineInteract" }
+                ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("HoneyMachineService_RE"):FireServer(unpack(args))
+            end)
+
+            task.wait(1) -- delay between activations
+        else
+            warn("No suitable fruit combo found!")
+            break
+        end
     end
 end
 
+-- Toggle logic (use your existing UI toggle object)
 autoHoneyMachineToggle[2].MouseButton1Click:Connect(function()
     autoHoneyMachine = not autoHoneyMachine
     autoHoneyMachineToggle[3].Visible = autoHoneyMachine
@@ -709,6 +789,88 @@ autoHoneyMachineToggle[2].MouseButton1Click:Connect(function()
         task.spawn(autoHoneyMachineLoop)
     end
 end)
+
+
+
+
+-- Find all pollinated fruits in backpack, returning table {tool=Tool, kg=number}
+local function findPollinatedFruits()
+    local fruits = {}
+
+    for _, tool in pairs(Backpack:GetChildren()) do
+        if tool:IsA("Tool") and tool.Name:find("Pollinated") then
+            -- Extract weight in kg from name, e.g. "[Pollinated, Wet] Strawberry [0.32kg]"
+            local weightStr = tool.Name:match("%[(%d+%.?%d*)kg%]")
+            if weightStr then
+                local weight = tonumber(weightStr)
+                if weight then
+                    table.insert(fruits, {tool = tool, kg = weight})
+                end
+            end
+        end
+    end
+
+    return fruits
+end
+
+-- Find combo (1 or 2 fruits) closest to targetKg
+local function findBestComboFlexible(fruits, targetKg)
+    local bestCombo = nil
+    local bestDiff = math.huge
+
+    -- Single fruits
+    for _, f in ipairs(fruits) do
+        local diff = math.abs(targetKg - f.kg)
+        if diff < bestDiff then
+            bestDiff = diff
+            bestCombo = {f}
+        end
+    end
+
+    -- Pairs
+    for i = 1, #fruits do
+        for j = i + 1, #fruits do
+            local totalKg = fruits[i].kg + fruits[j].kg
+            local diff = math.abs(targetKg - totalKg)
+            if diff < bestDiff then
+                bestDiff = diff
+                bestCombo = {fruits[i], fruits[j]}
+            end
+        end
+    end
+
+    return bestCombo
+end
+
+-- Auto honey machine loop
+local function autoHoneyMachineLoop()
+    while autoHoneyMachine do
+        local fruits = findPollinatedFruits()
+        if #fruits == 0 then
+            warn("No pollinated fruits found in backpack!")
+            break
+        end
+
+        local combo = findBestComboFlexible(fruits, targetKg)
+        if combo then
+            -- Equip all fruits in the combo
+            for _, fruitData in ipairs(combo) do
+                fruitData.tool.Parent = Character
+            end
+
+            -- Fire honey machine event
+            pcall(function()
+                local args = { "MachineInteract" }
+                ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("HoneyMachineService_RE"):FireServer(unpack(args))
+            end)
+
+            task.wait(1) -- delay between activations
+        else
+            warn("No suitable fruit combo found!")
+            break
+        end
+    end
+end
 
 -- Toggle GUI Button
 local toggleGuiButton = Instance.new("TextButton")
