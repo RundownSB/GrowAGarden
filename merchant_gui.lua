@@ -152,6 +152,8 @@ local autoSell = createToggleButton(MainTabFrame, "Auto Sell", 5)
 local autoFastCollect = createToggleButton(MainTabFrame, "Auto Fast Collect", 55) -- was 35
 local autoBuySeedsToggle = createToggleButton(MerchantsTabFrame, "Auto Buy Seeds", 5)
 local autoHoneyMachineToggle = createToggleButton(MainTabFrame, "Auto Honey Machine", 90) -- Adjust Y value if needed
+local autoPlantToggle = createToggleButton(MainTabFrame, "Auto Plant", 130)
+
 -- The seed list  (used by both buy seed functions)
 local seedList = {
     "Carrot", "Strawberry", "Blueberry", "Orange Tulip", "Tomato", "Corn",
@@ -215,7 +217,7 @@ local selling = false
 local autoBuySeeds = false
 local fastCollectEnabled = false
 local isSelling = false
-
+local autoPlantEnabled = false
 -- Require CollectController module (for fast collect)
 local CollectController = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("CollectController"))
 CollectController.Start(CollectController)
@@ -242,7 +244,6 @@ autoSell[3].Visible = true
     end
 end)
 
-local fastCollectEnabled = false
 
 local function fastCollectLoop()
     local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
@@ -576,10 +577,6 @@ buySelectedGearToggle[2].MouseButton1Click:Connect(function()
     end
 end)
 
-local autoPlantToggle = createToggleButton(MainTabFrame, "Auto Plant", 130) -- adjust Y pos if needed
-local autoPlantEnabled = false
-
-
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Plant_RE = ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("Plant_RE")
@@ -691,6 +688,27 @@ autoPlantToggle[3].Visible = autoPlantEnabled
         end)
     end
 end)
+
+-- honey machine 
+task.spawn(function()
+    while true do
+        if autoHoneyMachineEnabled then
+            pcall(function()
+                local args = { "MachineInteract" }
+                ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("HoneyMachineService_RE"):FireServer(unpack(args))
+            end)
+        end
+        task.wait(3) -- Adjust time between activations if needed
+    end
+end)
+
+autoHoneyMachineToggle[2].MouseButton1Click:Connect(function()
+    autoHoneyMachineEnabled = not autoHoneyMachineEnabled
+    autoHoneyMachineToggle[2].BackgroundColor3 = autoHoneyMachineEnabled and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(100, 100, 100)
+end)
+
+
+
 
 -- Toggle GUI Button
 local toggleGuiButton = Instance.new("TextButton")
