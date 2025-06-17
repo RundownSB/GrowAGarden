@@ -22,7 +22,7 @@ MainGuiFrame.Parent = screenGui
 MainGuiFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
 MainGuiFrame.BorderSizePixel = 0
 MainGuiFrame.Position = UDim2.new(0.519, 0, 0.507, 0)
-MainGuiFrame.Size = UDim2.new(0, 560, 0, 525) -- was 431 x 404 (increased ~1.3x)
+MainGuiFrame.Size = UDim2.new(0, 560, 0, 650) -- was 431 x 404 (increased ~1.3x)
 MainGuiFrame.ClipsDescendants = true
 MainGuiFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 
@@ -81,7 +81,7 @@ local function createTabFrame(name)
     frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     frame.BorderSizePixel = 0
     frame.Position = UDim2.new(0, 8, 0, 110) -- was 5,75
-    frame.Size = UDim2.new(0, 550, 0, 420) -- was 420,320
+    frame.Size = UDim2.new(0, 550, 0, 540) -- was 420,320
     frame.Visible = false
     return frame
 end
@@ -962,7 +962,139 @@ buySelectedEventShopToggle[2].MouseButton1Click:Connect(function()
     end
 end)
 
+-- === Buy Selected Pet Eggs with collapsible list ===
 
+local petEggList = {
+    "Common Egg",
+    "Uncommon Egg",
+    "Rare Egg",
+    "Legendary Egg",
+    "Mythical Egg",
+    "Bug Egg"
+}
+
+local buySelectedPetEggsToggle = createToggleButton(MerchantsTabFrame, "Buy Selected Pet Eggs", 170) -- Adjust Y position as needed
+
+local expandPetEggsBtn = Instance.new("TextButton")
+expandPetEggsBtn.Name = "ExpandPetEggsBtn"
+expandPetEggsBtn.Parent = buySelectedPetEggsToggle[1]
+expandPetEggsBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+expandPetEggsBtn.BorderSizePixel = 0
+expandPetEggsBtn.Size = UDim2.new(0, 32, 0, 28)
+expandPetEggsBtn.Position = UDim2.new(1, -75, 0, 6)
+expandPetEggsBtn.Font = Enum.Font.SourceSansBold
+expandPetEggsBtn.TextSize = 26
+expandPetEggsBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+expandPetEggsBtn.Text = "▶"
+expandPetEggsBtn.AutoButtonColor = false
+
+local petEggsListVisible = false
+
+local PetEggSelectionFrame = Instance.new("ScrollingFrame")
+PetEggSelectionFrame.Name = "PetEggSelectionFrame"
+PetEggSelectionFrame.Parent = MerchantsTabFrame
+PetEggSelectionFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+PetEggSelectionFrame.Position = UDim2.new(0, 8, 0, 255) -- Adjust position to avoid overlap
+PetEggSelectionFrame.Size = UDim2.new(0, 540, 0, 220)
+PetEggSelectionFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+PetEggSelectionFrame.ScrollBarThickness = 8
+PetEggSelectionFrame.Visible = false
+
+local petEggToggles = {}
+
+local function createPetEggToggle(eggName, yPos)
+    local container = Instance.new("Frame")
+    container.Name = eggName .. "Container"
+    container.Parent = PetEggSelectionFrame
+    container.BackgroundTransparency = 1
+    container.Size = UDim2.new(1, -15, 0, 38)
+    container.Position = UDim2.new(0, 5, 0, yPos)
+
+    local label = Instance.new("TextLabel")
+    label.Name = "Label"
+    label.Parent = container
+    label.BackgroundTransparency = 1
+    label.Position = UDim2.new(0, 0, 0, 0)
+    label.Size = UDim2.new(1, -40, 1, 0)
+    label.Font = Enum.Font.SourceSans
+    label.TextSize = 22
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.Text = eggName
+    label.TextXAlignment = Enum.TextXAlignment.Left
+
+    local toggle, light = createToggleSquare(container, UDim2.new(1, -35, 0, 6))
+
+    toggle.MouseButton1Click:Connect(function()
+        light.Visible = not light.Visible
+        petEggToggles[eggName] = light.Visible
+    end)
+
+    petEggToggles[eggName] = false
+end
+
+for i, eggName in ipairs(petEggList) do
+    createPetEggToggle(eggName, (i - 1) * 40)
+end
+
+PetEggSelectionFrame.CanvasSize = UDim2.new(0, 0, 0, #petEggList * 40)
+
+expandPetEggsBtn.MouseButton1Click:Connect(function()
+    petEggsListVisible = not petEggsListVisible
+    PetEggSelectionFrame.Visible = petEggsListVisible
+    expandPetEggsBtn.Text = petEggsListVisible and "▼" or "▶"
+
+    -- Hide other merchant buttons if pet eggs list is open
+    for _, child in pairs(MerchantsTabFrame:GetChildren()) do
+        if child:IsA("Frame") and child ~= buySelectedPetEggsToggle[1] and child ~= PetEggSelectionFrame then
+            child.Visible = not petEggsListVisible
+        end
+    end
+end)
+
+local function getEggNameToStallIndicesMap()
+    local map = {}
+    local validCount = 0
+    local eggLocations = workspace.NPCS["Pet Stand"].EggLocations:GetChildren()
+    for _, egg in ipairs(eggLocations) do
+        if egg.Name ~= "Location" then -- skip non-egg entries
+            validCount = validCount + 1
+            if not map[egg.Name] then
+                map[egg.Name] = {}
+            end
+            table.insert(map[egg.Name], validCount)
+        end
+    end
+    return map
+end
+
+local buySelectedPetEggs = false
+buySelectedPetEggsToggle[2].MouseButton1Click:Connect(function()
+    buySelectedPetEggs = not buySelectedPetEggs
+    buySelectedPetEggsToggle[3].Visible = buySelectedPetEggs
+    if buySelectedPetEggs then
+        task.spawn(function()
+            while buySelectedPetEggs do
+                local eggNameToStallIndices = getEggNameToStallIndicesMap()
+                for eggName, enabled in pairs(petEggToggles) do
+                    if enabled then
+                        local stallIndices = eggNameToStallIndices[eggName]
+                        if stallIndices then
+                            for _, stallIndex in ipairs(stallIndices) do
+                                pcall(function()
+                                    ReplicatedStorage.GameEvents.BuyPetEgg:FireServer(stallIndex)
+                                end)
+                                task.wait(0.3)
+                            end
+                        else
+                            warn("Egg not found in shop:", eggName)
+                        end
+                    end
+                end
+                task.wait(1)
+            end
+        end)
+    end
+end)
 
 -- Toggle GUI Button
 local toggleGuiButton = Instance.new("TextButton")
