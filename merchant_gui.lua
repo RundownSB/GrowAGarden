@@ -151,7 +151,7 @@ end
 local autoSell = createToggleButton(MainTabFrame, "Auto Sell", 5)
 local autoFastCollect = createToggleButton(MainTabFrame, "Auto Fast Collect", 55) -- was 35
 local autoBuySeedsToggle = createToggleButton(MerchantsTabFrame, "Auto Buy Seeds", 5)
-
+local autoHoneyMachineToggle = createToggleButton(MainTabFrame, "Auto Honey Machine", 90) -- Adjust Y value if needed
 -- The seed list  (used by both buy seed functions)
 local seedList = {
     "Carrot", "Strawberry", "Blueberry", "Orange Tulip", "Tomato", "Corn",
