@@ -149,9 +149,9 @@ local function createToggleButton(parent, text, yPos)
 end
 
 local autoSell = createToggleButton(MainTabFrame, "Auto Sell", 5)
-local autoFastCollect = createToggleButton(MainTabFrame, "Auto Fast Collect", 55) -- was 35
+local autoFastCollect = createToggleButton(MainTabFrame, "Auto Fast Collect", 55) 
 local autoBuySeedsToggle = createToggleButton(MerchantsTabFrame, "Auto Buy Seeds", 5)
-local autoHoneyMachineToggle = createToggleButton(MainTabFrame, "Auto Honey Machine", 90) -- Adjust Y value if needed
+local autoHoneyMachineToggle = createToggleButton(MainTabFrame, "Auto Honey Machine", 90)
 local autoPlantToggle = createToggleButton(MainTabFrame, "Auto Plant", 130)
 
 -- The seed list  (used by both buy seed functions)
@@ -693,6 +693,7 @@ autoPlantToggle[3].Visible = autoPlantEnabled
     end
 end)
 
+-- Auto Honey Machine Script (Full Version)
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
@@ -700,15 +701,15 @@ local LocalPlayer = Players.LocalPlayer
 local Backpack = LocalPlayer.Backpack
 local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 
+local DataService = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("DataService"))
 local targetKg = 10
+local autoHoneyMachine = false
 
--- Find all pollinated fruits in backpack, returning table {tool=Tool, kg=number}
+-- 🔎 Find pollinated fruits
 local function findPollinatedFruits()
     local fruits = {}
-
     for _, tool in pairs(Backpack:GetChildren()) do
         if tool:IsA("Tool") and tool.Name:find("Pollinated") then
-            -- Extract weight in kg from name, e.g. "[Pollinated, Wet] Strawberry [0.32kg]"
             local weightStr = tool.Name:match("%[(%d+%.?%d*)kg%]")
             if weightStr then
                 local weight = tonumber(weightStr)
@@ -718,70 +719,112 @@ local function findPollinatedFruits()
             end
         end
     end
-
     return fruits
 end
 
--- Find combo (1 or 2 fruits) closest to targetKg
-local function findBestComboFlexible(fruits, targetKg)
-    local bestCombo = nil
-    local bestDiff = math.huge
-
-    -- Single fruits
-    for _, f in ipairs(fruits) do
-        local diff = math.abs(targetKg - f.kg)
-        if diff < bestDiff then
-            bestDiff = diff
-            bestCombo = {f}
+-- 📦 Build a fruit combo close to target weight
+local function buildFruitCombo(fruits, target)
+    table.sort(fruits, function(a, b) return a.kg > b.kg end)
+    local combo, total = {}, 0
+    for _, fruit in ipairs(fruits) do
+        if total < target then
+            table.insert(combo, fruit)
+            total = total + fruit.kg
         end
     end
-
-    -- Pairs
-    for i = 1, #fruits do
-        for j = i + 1, #fruits do
-            local totalKg = fruits[i].kg + fruits[j].kg
-            local diff = math.abs(targetKg - totalKg)
-            if diff < bestDiff then
-                bestDiff = diff
-                bestCombo = {fruits[i], fruits[j]}
-            end
-        end
-    end
-
-    return bestCombo
+    return (#combo > 0 and combo) or nil
 end
 
--- Auto honey machine loop
+-- 📊 Get Honey Machine data
+local function getMachineData()
+    local data = DataService:GetData()
+    return data and data.HoneyMachine or {}
+end
+
+-- ⏳ Wait until honey is ready to collect
+local function waitForHoney()
+    while autoHoneyMachine do
+        local data = getMachineData()
+        if not data.IsRunning and (data.HoneyStored or 0) >= 10 then
+            return true
+        end
+        task.wait(1)
+    end
+    return false
+end
+
+-- 🔁 Main Loop
 local function autoHoneyMachineLoop()
     while autoHoneyMachine do
-        local fruits = findPollinatedFruits()
-        if #fruits == 0 then
-            warn("No pollinated fruits found in backpack!")
-            break
-        end
+        local machineData = getMachineData()
+        local plantWeight = machineData.PlantWeight or 0
+        local isRunning = machineData.IsRunning
+        local honeyStored = machineData.HoneyStored or 0
 
-        local combo = findBestComboFlexible(fruits, targetKg)
-        if combo then
-            -- Equip all fruits in the combo
-            for _, fruitData in ipairs(combo) do
-                fruitData.tool.Parent = Character
-            end
+        print(string.format("[AutoHoneyMachine] 🌿 Weight: %.2f kg | 🔁 Running: %s | 🍯 Honey: %s",
+            plantWeight, tostring(isRunning), tostring(honeyStored)))
 
-            -- Fire honey machine event
-            pcall(function()
-                local args = { "MachineInteract" }
-                ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("HoneyMachineService_RE"):FireServer(unpack(args))
-            end)
+        if not isRunning and plantWeight < targetKg then
+            -- Step 1: Add fruit
+            local fruits = findPollinatedFruits()
+            local combo = buildFruitCombo(fruits, targetKg - plantWeight)
 
-            task.wait(1) -- delay between activations
-        else
-            warn("No suitable fruit combo found!")
-            break
-        end
-    end
+            if combo then
+               for _, fruit in ipairs(combo) do
+    if not autoHoneyMachine then return end
+    fruit.tool.Parent = Character
+    task.wait(0.1) -- wait for the tool to register in Character
+
+    -- Interact with the Honey Machine immediately after equipping each fruit
+    pcall(function()
+        ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("HoneyMachineService_RE"):FireServer("MachineInteract")
+    end)
+
+    task.wait(1.2) -- wait a bit for machine to update
 end
 
--- Toggle logic (use your existing UI toggle object)
+
+                pcall(function()
+                    ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("HoneyMachineService_RE"):FireServer("MachineInteract")
+                end)
+
+                task.wait(1)
+            else
+                warn("[AutoHoneyMachine] ❌ Not enough fruit to reach target, waiting for more...")
+                task.wait(3)  -- wait a bit and then try again without stopping the loop
+            end
+
+        elseif isRunning then
+    print("[AutoHoneyMachine] ⏳ Waiting for machine to finish...")
+    repeat
+        task.wait(1)
+        machineData = getMachineData()
+    until not machineData.IsRunning or not autoHoneyMachine
+
+    -- ✅ Refresh machineData and honeyStored
+    machineData = getMachineData()
+    honeyStored = machineData.HoneyStored or 0
+
+        elseif not isRunning and honeyStored < 10 then
+            -- Step 3: Wait for honey to be ready
+            print("[AutoHoneyMachine] ⏳ Waiting for honey to finish...")
+            waitForHoney()
+
+        elseif not isRunning and honeyStored >= 10 then
+            -- Step 4: Collect honey
+            print("[AutoHoneyMachine] 🍯 Collecting honey...")
+            pcall(function()
+                ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("HoneyMachineService_RE"):FireServer("MachineInteract")
+            end)
+            task.wait(1)
+        end
+
+        task.wait(1)
+    end
+    print("[AutoHoneyMachine] 🔁 Loop exited.")
+end
+
+-- 🟢 Connect Toggle Button
 autoHoneyMachineToggle[2].MouseButton1Click:Connect(function()
     autoHoneyMachine = not autoHoneyMachine
     autoHoneyMachineToggle[3].Visible = autoHoneyMachine
@@ -790,87 +833,6 @@ autoHoneyMachineToggle[2].MouseButton1Click:Connect(function()
     end
 end)
 
-
-
-
--- Find all pollinated fruits in backpack, returning table {tool=Tool, kg=number}
-local function findPollinatedFruits()
-    local fruits = {}
-
-    for _, tool in pairs(Backpack:GetChildren()) do
-        if tool:IsA("Tool") and tool.Name:find("Pollinated") then
-            -- Extract weight in kg from name, e.g. "[Pollinated, Wet] Strawberry [0.32kg]"
-            local weightStr = tool.Name:match("%[(%d+%.?%d*)kg%]")
-            if weightStr then
-                local weight = tonumber(weightStr)
-                if weight then
-                    table.insert(fruits, {tool = tool, kg = weight})
-                end
-            end
-        end
-    end
-
-    return fruits
-end
-
--- Find combo (1 or 2 fruits) closest to targetKg
-local function findBestComboFlexible(fruits, targetKg)
-    local bestCombo = nil
-    local bestDiff = math.huge
-
-    -- Single fruits
-    for _, f in ipairs(fruits) do
-        local diff = math.abs(targetKg - f.kg)
-        if diff < bestDiff then
-            bestDiff = diff
-            bestCombo = {f}
-        end
-    end
-
-    -- Pairs
-    for i = 1, #fruits do
-        for j = i + 1, #fruits do
-            local totalKg = fruits[i].kg + fruits[j].kg
-            local diff = math.abs(targetKg - totalKg)
-            if diff < bestDiff then
-                bestDiff = diff
-                bestCombo = {fruits[i], fruits[j]}
-            end
-        end
-    end
-
-    return bestCombo
-end
-
--- Auto honey machine loop
-local function autoHoneyMachineLoop()
-    while autoHoneyMachine do
-        local fruits = findPollinatedFruits()
-        if #fruits == 0 then
-            warn("No pollinated fruits found in backpack!")
-            break
-        end
-
-        local combo = findBestComboFlexible(fruits, targetKg)
-        if combo then
-            -- Equip all fruits in the combo
-            for _, fruitData in ipairs(combo) do
-                fruitData.tool.Parent = Character
-            end
-
-            -- Fire honey machine event
-            pcall(function()
-                local args = { "MachineInteract" }
-                ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("HoneyMachineService_RE"):FireServer(unpack(args))
-            end)
-
-            task.wait(1) -- delay between activations
-        else
-            warn("No suitable fruit combo found!")
-            break
-        end
-    end
-end
 
 -- Toggle GUI Button
 local toggleGuiButton = Instance.new("TextButton")
