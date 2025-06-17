@@ -148,6 +148,7 @@ local function createToggleButton(parent, text, yPos)
     return {container, toggle, light, false}
 end
 
+local autoSell = createToggleButton(MainTabFrame, "Auto Sell", 5)
 local autoFastCollect = createToggleButton(MainTabFrame, "Auto Fast Collect", 55) -- was 35
 local autoBuySeedsToggle = createToggleButton(MerchantsTabFrame, "Auto Buy Seeds", 5)
 
@@ -210,6 +211,7 @@ RunService.RenderStepped:Connect(function(delta)
 end)
 
 -- Logic Variables
+local selling = false
 local autoBuySeeds = false
 local fastCollectEnabled = false
 local isSelling = false
@@ -218,36 +220,52 @@ local isSelling = false
 local CollectController = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("CollectController"))
 CollectController.Start(CollectController)
 
+-- Auto Sell Logic
+autoSell[2].MouseButton1Click:Connect(function()
+    if not selling then
+        selling = true
+        isSelling = true 
+autoSell[3].Visible = true
+        local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+        local hrp = character:WaitForChild("HumanoidRootPart")
+        local originalPos = hrp.CFrame
+        hrp.CFrame = CFrame.new(85.94, 3, 0.32)
+        task.wait(1)
+        ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("Sell_Inventory"):FireServer()
+        hrp.CFrame = originalPos
+       isSelling = false
+ selling = false
+        autoSell[3].Visible = false
+    else
+        selling = false
+        autoSell[3].Visible = false
+    end
+end)
+
+local fastCollectEnabled = false
+
 local function fastCollectLoop()
     local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
     local hrp = character:WaitForChild("HumanoidRootPart")
-    local originalPos = hrp.CFrame
-
+    
     while fastCollectEnabled do
-        -- Collect all crops
-        for _, pos in ipairs(allPositions) do
-            if not fastCollectEnabled then break end
-
-            hrp.CFrame = CFrame.new(pos)
-            task.wait(0.3)
-
-            pcall(function()
-                CollectController:Collect()
-            end)
-
-            task.wait(0.2)
-        end
-
-        -- Auto-sell after collecting
-        pcall(function()
-            hrp.CFrame = CFrame.new(85.94, 3, 0.32) -- Sell zone
+        if isSelling then
+            task.wait(0.5) -- Wait and skip teleport while selling
+        else
+            for _, pos in ipairs(allPositions) do
+                if not fastCollectEnabled or isSelling then break end
+                
+                hrp.CFrame = CFrame.new(pos)
+                task.wait(0.3)
+                
+                pcall(function()
+                    CollectController:Collect()
+                end)
+                
+                task.wait(0.2)
+            end
             task.wait(1)
-            ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("Sell_Inventory"):FireServer()
-            task.wait(0.5)
-            hrp.CFrame = originalPos -- Return to original spot
-        end)
-
-        task.wait(1)
+        end
     end
 end
 
@@ -284,7 +302,7 @@ local corners2 = {
 }
 
 local function generatePositions(corners, step)
-    step = step or 8
+    step = step or 10
     local positions = {}
 
     local xs = {corners[1].X, corners[2].X, corners[3].X, corners[4].X}
@@ -311,6 +329,35 @@ end
 for _, pos in ipairs(generatePositions(corners2)) do
     table.insert(allPositions, pos)
 end
+
+local fastCollectEnabled = false
+
+local function fastCollectLoop()
+    while fastCollectEnabled do
+        for _, pos in ipairs(allPositions) do
+            if not fastCollectEnabled then break end
+            
+            hrp.CFrame = CFrame.new(pos)
+            task.wait(0.3) -- wait for position to settle
+            
+            pcall(function()
+                CollectController:Collect()
+            end)
+            
+            task.wait(0.2)
+        end
+        task.wait(1) -- optional delay between loops
+    end
+end
+
+autoFastCollect[2].MouseButton1Click:Connect(function()
+    fastCollectEnabled = not fastCollectEnabled
+    autoFastCollect[3].Visible = fastCollectEnabled
+    if fastCollectEnabled then
+        task.spawn(fastCollectLoop)
+    end
+end)
+
 
 -- Auto Buy Seeds Logic (Original one, unchanged)
 local function autoBuySeedsLoop()
