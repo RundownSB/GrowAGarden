@@ -218,6 +218,8 @@ local autoBuySeeds = false
 local fastCollectEnabled = false
 local isSelling = false
 local autoPlantEnabled = false
+local autoHoneyMachine = false
+
 -- Require CollectController module (for fast collect)
 local CollectController = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("CollectController"))
 CollectController.Start(CollectController)
@@ -690,25 +692,23 @@ autoPlantToggle[3].Visible = autoPlantEnabled
 end)
 
 -- honey machine 
-task.spawn(function()
-    while true do
-        if autoHoneyMachineEnabled then
-            pcall(function()
-                local args = { "MachineInteract" }
-                ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("HoneyMachineService_RE"):FireServer(unpack(args))
-            end)
-        end
-        task.wait(3) -- Adjust time between activations if needed
+local function autoHoneyMachineLoop()
+    while autoHoneyMachine do
+        pcall(function()
+            local args = { "MachineInteract" }
+            game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("HoneyMachineService_RE"):FireServer(unpack(args))
+        end)
+        task.wait(1) -- Adjust delay as needed
     end
-end)
+end
 
 autoHoneyMachineToggle[2].MouseButton1Click:Connect(function()
-    autoHoneyMachineEnabled = not autoHoneyMachineEnabled
-    autoHoneyMachineToggle[2].BackgroundColor3 = autoHoneyMachineEnabled and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(100, 100, 100)
+    autoHoneyMachine = not autoHoneyMachine
+    autoHoneyMachineToggle[3].Visible = autoHoneyMachine
+    if autoHoneyMachine then
+        task.spawn(autoHoneyMachineLoop)
+    end
 end)
-
-
-
 
 -- Toggle GUI Button
 local toggleGuiButton = Instance.new("TextButton")
