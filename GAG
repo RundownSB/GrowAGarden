@@ -148,35 +148,23 @@ local function createToggleButton(parent, text, yPos)
     return {container, toggle, light, false}
 end
 
--- Enable scrolling for smaller screens
 if isMobile then
-    for _, tab in pairs({MainTabFrame, MerchantsTabFrame}) do
-        -- Replace frame with a ScrollingFrame for mobile
-        local scrollFrame = Instance.new("ScrollingFrame")
-        scrollFrame.Name = tab.Name
-        scrollFrame.Parent = tab.Parent
-        scrollFrame.Position = tab.Position
-        scrollFrame.Size = tab.Size
-        scrollFrame.BackgroundColor3 = tab.BackgroundColor3
-        scrollFrame.BorderSizePixel = 0
-        scrollFrame.ScrollBarThickness = 6
-        scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 400) -- allow scrolling if buttons overflow
-        scrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
-        scrollFrame.ScrollingDirection = Enum.ScrollingDirection.Y
+    -- Shrink and reposition the MainGuiFrame to fit mobile
+    MainGuiFrame.Size = UDim2.new(0, 420, 0, 400)
+    MainGuiFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
 
-        tab:ClearAllChildren()
-        for _, child in pairs(tab:GetChildren()) do
-            child.Parent = scrollFrame
-        end
-        tab:Destroy()
+    -- Adjust tab buttons
+    MainButton.Size = UDim2.new(0, 200, 0, 36)
+    MerchantsButton.Size = UDim2.new(0, 200, 0, 36)
+    MerchantsButton.Position = UDim2.new(0, 210, 0, 0)
 
-        -- OPTIONAL: UIListLayout to auto-stack toggles vertically
-        local layout = Instance.new("UIListLayout")
-        layout.Padding = UDim.new(0, 10)
-        layout.Parent = scrollFrame
-    end
+    -- Adjust tab frame height to show toggle buttons
+    MainTabFrame.Position = UDim2.new(0, 8, 0, 100)
+    MainTabFrame.Size = UDim2.new(1, -16, 1, -130)  -- was -120
+
+    MerchantsTabFrame.Position = UDim2.new(0, 8, 0, 100)
+    MerchantsTabFrame.Size = UDim2.new(1, -16, 1, -130)
 end
-
 
 local autoSell = createToggleButton(MainTabFrame, "Auto Sell", 5)
 local autoFastCollect = createToggleButton(MainTabFrame, "Auto Fast Collect", 55) 
