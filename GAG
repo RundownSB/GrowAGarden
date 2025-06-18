@@ -467,8 +467,15 @@ local SeedSelectionFrame = Instance.new("ScrollingFrame")
 SeedSelectionFrame.Name = "SeedSelectionFrame"
 SeedSelectionFrame.Parent = MerchantsTabFrame
 SeedSelectionFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-SeedSelectionFrame.Position = UDim2.new(0, 8, 0, 100) -- was 100
-SeedSelectionFrame.Size = UDim2.new(0, 540, 0, 330) -- was 410 x 215
+SeedSelectionFrame.Position = UDim2.new(0, 8, 0, 100) -- same for PC and mobile
+
+-- Mobile adjustment: narrower width on mobile
+if isMobile then
+    SeedSelectionFrame.Size = UDim2.new(0, 380, 0, 330) -- narrower for mobile
+else
+    SeedSelectionFrame.Size = UDim2.new(0, 540, 0, 330) -- wider for PC
+end
+
 SeedSelectionFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 SeedSelectionFrame.ScrollBarThickness = 8 -- slightly thicker scrollbar
 SeedSelectionFrame.Visible = false  -- Start hidden
@@ -480,7 +487,21 @@ local function createSeedToggle(seedName, yPos)
     container.Name = seedName .. "Container"
     container.Parent = SeedSelectionFrame
     container.BackgroundTransparency = 1
-    container.Size = UDim2.new(1, -15, 0, 38) -- height 38, width shrunk by 15
+
+    -- Adjust container width for mobile vs PC
+    local containerWidthOffset = -15
+    local labelWidthOffset = -40
+    local togglePosition
+
+    if isMobile then
+        containerWidthOffset = -30
+        labelWidthOffset = -60
+        togglePosition = UDim2.new(1, -65, 0, 6) -- toggle pushed left more on mobile
+    else
+        togglePosition = UDim2.new(1, -35, 0, 6) -- normal position for PC
+    end
+
+    container.Size = UDim2.new(1, containerWidthOffset, 0, 38) -- height 38
     container.Position = UDim2.new(0, 5, 0, yPos)
 
     local label = Instance.new("TextLabel")
@@ -488,20 +509,12 @@ local function createSeedToggle(seedName, yPos)
     label.Parent = container
     label.BackgroundTransparency = 1
     label.Position = UDim2.new(0, 0, 0, 0)
-    label.Size = UDim2.new(1, -40, 1, 0) -- space left for toggle
+    label.Size = UDim2.new(1, labelWidthOffset, 1, 0) -- space left for toggle
     label.Font = Enum.Font.SourceSans
     label.TextSize = 22
     label.TextColor3 = Color3.fromRGB(255, 255, 255)
     label.Text = seedName
     label.TextXAlignment = Enum.TextXAlignment.Left
-
-    -- Adjust toggle position based on device
-    local togglePosition
-    if isMobile then
-        togglePosition = UDim2.new(1, -65, 0, 6) -- push left more on mobile
-    else
-        togglePosition = UDim2.new(1, -35, 0, 6) -- normal position for PC
-    end
 
     local toggle, light = createToggleSquare(container, togglePosition)
 
@@ -513,9 +526,8 @@ local function createSeedToggle(seedName, yPos)
     seedToggles[seedName] = false
 end
 
-
 for i, seedName in ipairs(seedList) do
-    createSeedToggle(seedName, (i - 1) * 40) -- was 32 spacing
+    createSeedToggle(seedName, (i - 1) * 40) -- spacing for toggles
 end
 
 SeedSelectionFrame.CanvasSize = UDim2.new(0, 0, 0, #seedList * 40) -- adjusted for new toggle height
@@ -530,12 +542,13 @@ expandCollapseBtn.MouseButton1Click:Connect(function()
         if child:IsA("Frame") 
            and child ~= autoBuySeedsToggle[1] 
            and child ~= SeedSelectionFrame
-           and child ~= buySelectedSeedsToggle[1]  -- ADD THIS LINE TO EXCLUDE
+           and child ~= buySelectedSeedsToggle[1]  -- exclude this toggle frame
         then
             child.Visible = not seedListVisible
         end
-    end  -- <== THIS END closes the for loop
+    end
 end)
+
 
 local buySelectedSeeds = false
 buySelectedSeedsToggle[2].MouseButton1Click:Connect(function()
