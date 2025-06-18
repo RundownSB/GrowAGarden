@@ -480,7 +480,7 @@ local function createSeedToggle(seedName, yPos)
     container.Name = seedName .. "Container"
     container.Parent = SeedSelectionFrame
     container.BackgroundTransparency = 1
-    container.Size = UDim2.new(1, -15, 0, 38) -- was 30 height and -10 width
+    container.Size = UDim2.new(1, -15, 0, 38) -- height 38, width shrunk by 15
     container.Position = UDim2.new(0, 5, 0, yPos)
 
     local label = Instance.new("TextLabel")
@@ -488,14 +488,22 @@ local function createSeedToggle(seedName, yPos)
     label.Parent = container
     label.BackgroundTransparency = 1
     label.Position = UDim2.new(0, 0, 0, 0)
-    label.Size = UDim2.new(1, -40, 1, 0) -- extra space for bigger toggle
+    label.Size = UDim2.new(1, -40, 1, 0) -- space left for toggle
     label.Font = Enum.Font.SourceSans
-    label.TextSize = 22 -- was 18
+    label.TextSize = 22
     label.TextColor3 = Color3.fromRGB(255, 255, 255)
     label.Text = seedName
     label.TextXAlignment = Enum.TextXAlignment.Left
 
-    local toggle, light = createToggleSquare(container, UDim2.new(1, -35, 0, 6)) -- adjusted pos
+    -- Adjust toggle position based on device
+    local togglePosition
+    if isMobile then
+        togglePosition = UDim2.new(1, -65, 0, 6) -- push left more on mobile
+    else
+        togglePosition = UDim2.new(1, -35, 0, 6) -- normal position for PC
+    end
+
+    local toggle, light = createToggleSquare(container, togglePosition)
 
     toggle.MouseButton1Click:Connect(function()
         light.Visible = not light.Visible
@@ -504,6 +512,7 @@ local function createSeedToggle(seedName, yPos)
 
     seedToggles[seedName] = false
 end
+
 
 for i, seedName in ipairs(seedList) do
     createSeedToggle(seedName, (i - 1) * 40) -- was 32 spacing
