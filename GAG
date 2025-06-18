@@ -148,6 +148,36 @@ local function createToggleButton(parent, text, yPos)
     return {container, toggle, light, false}
 end
 
+-- Enable scrolling for smaller screens
+if isMobile then
+    for _, tab in pairs({MainTabFrame, MerchantsTabFrame}) do
+        -- Replace frame with a ScrollingFrame for mobile
+        local scrollFrame = Instance.new("ScrollingFrame")
+        scrollFrame.Name = tab.Name
+        scrollFrame.Parent = tab.Parent
+        scrollFrame.Position = tab.Position
+        scrollFrame.Size = tab.Size
+        scrollFrame.BackgroundColor3 = tab.BackgroundColor3
+        scrollFrame.BorderSizePixel = 0
+        scrollFrame.ScrollBarThickness = 6
+        scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 400) -- allow scrolling if buttons overflow
+        scrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+        scrollFrame.ScrollingDirection = Enum.ScrollingDirection.Y
+
+        tab:ClearAllChildren()
+        for _, child in pairs(tab:GetChildren()) do
+            child.Parent = scrollFrame
+        end
+        tab:Destroy()
+
+        -- OPTIONAL: UIListLayout to auto-stack toggles vertically
+        local layout = Instance.new("UIListLayout")
+        layout.Padding = UDim.new(0, 10)
+        layout.Parent = scrollFrame
+    end
+end
+
+
 local autoSell = createToggleButton(MainTabFrame, "Auto Sell", 5)
 local autoFastCollect = createToggleButton(MainTabFrame, "Auto Fast Collect", 55) 
 local autoBuySeedsToggle = createToggleButton(MerchantsTabFrame, "Auto Buy Seeds", 5)
