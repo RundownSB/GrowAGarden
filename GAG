@@ -610,7 +610,14 @@ GearSelectionFrame.Name = "GearSelectionFrame"
 GearSelectionFrame.Parent = MerchantsTabFrame
 GearSelectionFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 GearSelectionFrame.Position = UDim2.new(0, 8, 0, 180)
-GearSelectionFrame.Size = UDim2.new(0, 540, 0, 250)
+
+-- Mobile adjustment: narrower width on mobile
+if isMobile then
+    GearSelectionFrame.Size = UDim2.new(0, 380, 0, 250)
+else
+    GearSelectionFrame.Size = UDim2.new(0, 540, 0, 250)
+end
+
 GearSelectionFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 GearSelectionFrame.ScrollBarThickness = 8
 GearSelectionFrame.Visible = false
@@ -622,7 +629,20 @@ local function createGearToggle(gearName, yPos)
     container.Name = gearName .. "Container"
     container.Parent = GearSelectionFrame
     container.BackgroundTransparency = 1
-    container.Size = UDim2.new(1, -15, 0, 38)
+
+    local containerWidthOffset = -15
+    local labelWidthOffset = -40
+    local togglePosition
+
+    if isMobile then
+        containerWidthOffset = -30
+        labelWidthOffset = -60
+        togglePosition = UDim2.new(1, -65, 0, 6) -- toggle pushed left more on mobile
+    else
+        togglePosition = UDim2.new(1, -35, 0, 6) -- normal position for PC
+    end
+
+    container.Size = UDim2.new(1, containerWidthOffset, 0, 38)
     container.Position = UDim2.new(0, 5, 0, yPos)
 
     local label = Instance.new("TextLabel")
@@ -630,14 +650,14 @@ local function createGearToggle(gearName, yPos)
     label.Parent = container
     label.BackgroundTransparency = 1
     label.Position = UDim2.new(0, 0, 0, 0)
-    label.Size = UDim2.new(1, -40, 1, 0)
+    label.Size = UDim2.new(1, labelWidthOffset, 1, 0)
     label.Font = Enum.Font.SourceSans
     label.TextSize = 22
     label.TextColor3 = Color3.fromRGB(255, 255, 255)
     label.Text = gearName
     label.TextXAlignment = Enum.TextXAlignment.Left
 
-    local toggle, light = createToggleSquare(container, UDim2.new(1, -35, 0, 6))
+    local toggle, light = createToggleSquare(container, togglePosition)
 
     toggle.MouseButton1Click:Connect(function()
         light.Visible = not light.Visible
@@ -665,7 +685,6 @@ expandGearBtn.MouseButton1Click:Connect(function()
         end
     end
 end)
-
 
 local buySelectedGear = false
 buySelectedGearToggle[2].MouseButton1Click:Connect(function()
