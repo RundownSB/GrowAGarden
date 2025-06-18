@@ -456,7 +456,8 @@ local function createSeedToggle(seedName, yPos)
     label.Text = seedName
     label.TextXAlignment = Enum.TextXAlignment.Left
 
-   local toggle, light = createToggleSquare(container, UDim2.new(1, -90, 0, 6)) -- adjusted pos
+  local offset = isMobile and -60 or -90
+local toggle, light = createToggleSquare(container, UDim2.new(1, offset, 0, 6))
 
     toggle.MouseButton1Click:Connect(function()
         light.Visible = not light.Visible
