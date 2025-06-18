@@ -469,11 +469,34 @@ SeedSelectionFrame.Parent = MerchantsTabFrame
 SeedSelectionFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 SeedSelectionFrame.Position = UDim2.new(0, 8, 0, 100) -- same for PC and mobile
 
--- Mobile adjustment: narrower width on mobile
+-- Function to calculate max height so the list fits on screen on mobile
+local function getMaxFrameHeight(toggleButton)
+    local screenHeight = workspace.CurrentCamera.ViewportSize.Y
+    local togglePos = toggleButton.AbsolutePosition.Y
+    local toggleHeight = toggleButton.AbsoluteSize.Y
+    local margin = 40 -- margin from bottom of screen
+    local maxHeight = screenHeight - (togglePos + toggleHeight) - margin
+    if maxHeight < 100 then
+        maxHeight = 100 -- minimum height
+    end
+    return maxHeight
+end
+
 if isMobile then
-    SeedSelectionFrame.Size = UDim2.new(0, 380, 0, 330) -- narrower for mobile
+    -- Wait for AbsolutePosition to be valid and then set height dynamically
+    task.defer(function()
+        local maxHeight = getMaxFrameHeight(buySelectedSeedsToggle[1])
+        SeedSelectionFrame.Size = UDim2.new(0, 380, 0, maxHeight)
+    end)
+
+    -- Update height if toggle moves
+    buySelectedSeedsToggle[1]:GetPropertyChangedSignal("AbsolutePosition"):Connect(function()
+        local maxHeight = getMaxFrameHeight(buySelectedSeedsToggle[1])
+        SeedSelectionFrame.Size = UDim2.new(0, 380, 0, maxHeight)
+    end)
 else
-    SeedSelectionFrame.Size = UDim2.new(0, 540, 0, 330) -- wider for PC
+    -- Fixed size for PC
+    SeedSelectionFrame.Size = UDim2.new(0, 540, 0, 330)
 end
 
 SeedSelectionFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
@@ -549,7 +572,6 @@ expandCollapseBtn.MouseButton1Click:Connect(function()
     end
 end)
 
-
 local buySelectedSeeds = false
 buySelectedSeedsToggle[2].MouseButton1Click:Connect(function()
     buySelectedSeeds = not buySelectedSeeds
@@ -602,7 +624,6 @@ expandGearBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
 expandGearBtn.Text = "▶"
 expandGearBtn.AutoButtonColor = false
 
-
 local gearListVisible = false
 
 local GearSelectionFrame = Instance.new("ScrollingFrame")
@@ -611,10 +632,33 @@ GearSelectionFrame.Parent = MerchantsTabFrame
 GearSelectionFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 GearSelectionFrame.Position = UDim2.new(0, 8, 0, 180)
 
--- Mobile adjustment: narrower width on mobile
+-- Function to calculate max height so the list fits on screen on mobile
+local function getMaxGearFrameHeight(toggleButton)
+    local screenHeight = workspace.CurrentCamera.ViewportSize.Y
+    local togglePos = toggleButton.AbsolutePosition.Y
+    local toggleHeight = toggleButton.AbsoluteSize.Y
+    local margin = 40 -- margin from bottom of screen
+    local maxHeight = screenHeight - (togglePos + toggleHeight) - margin
+    if maxHeight < 100 then
+        maxHeight = 100 -- minimum height
+    end
+    return maxHeight
+end
+
 if isMobile then
-    GearSelectionFrame.Size = UDim2.new(0, 380, 0, 250)
+    -- Set height dynamically for mobile
+    task.defer(function()
+        local maxHeight = getMaxGearFrameHeight(buySelectedGearToggle[1])
+        GearSelectionFrame.Size = UDim2.new(0, 380, 0, maxHeight)
+    end)
+
+    -- Update height if toggle moves
+    buySelectedGearToggle[1]:GetPropertyChangedSignal("AbsolutePosition"):Connect(function()
+        local maxHeight = getMaxGearFrameHeight(buySelectedGearToggle[1])
+        GearSelectionFrame.Size = UDim2.new(0, 380, 0, maxHeight)
+    end)
 else
+    -- Fixed size for PC
     GearSelectionFrame.Size = UDim2.new(0, 540, 0, 250)
 end
 
@@ -997,10 +1041,33 @@ EventShopSelectionFrame.Parent = MerchantsTabFrame
 EventShopSelectionFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 EventShopSelectionFrame.Position = UDim2.new(0, 8, 0, 140)
 
--- Mobile adjustment: narrower width on mobile
+-- Function to calculate max height so the list fits on screen on mobile
+local function getMaxEventShopFrameHeight(toggleButton)
+    local screenHeight = workspace.CurrentCamera.ViewportSize.Y
+    local togglePos = toggleButton.AbsolutePosition.Y
+    local toggleHeight = toggleButton.AbsoluteSize.Y
+    local margin = 40 -- margin from bottom of screen
+    local maxHeight = screenHeight - (togglePos + toggleHeight) - margin
+    if maxHeight < 100 then
+        maxHeight = 100 -- minimum height
+    end
+    return maxHeight
+end
+
 if isMobile then
-    EventShopSelectionFrame.Size = UDim2.new(0, 380, 0, 330)
+    -- Set height dynamically for mobile
+    task.defer(function()
+        local maxHeight = getMaxEventShopFrameHeight(buySelectedEventShopToggle[1])
+        EventShopSelectionFrame.Size = UDim2.new(0, 380, 0, maxHeight)
+    end)
+
+    -- Update height if toggle moves
+    buySelectedEventShopToggle[1]:GetPropertyChangedSignal("AbsolutePosition"):Connect(function()
+        local maxHeight = getMaxEventShopFrameHeight(buySelectedEventShopToggle[1])
+        EventShopSelectionFrame.Size = UDim2.new(0, 380, 0, maxHeight)
+    end)
 else
+    -- Fixed size for PC
     EventShopSelectionFrame.Size = UDim2.new(0, 540, 0, 330)
 end
 
@@ -1072,7 +1139,6 @@ expandEventShopBtn.MouseButton1Click:Connect(function()
     end
 end)
 
-
 local buySelectedEventShop = false
 buySelectedEventShopToggle[2].MouseButton1Click:Connect(function()
     buySelectedEventShop = not buySelectedEventShop
@@ -1136,10 +1202,33 @@ PetEggSelectionFrame.Parent = MerchantsTabFrame
 PetEggSelectionFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 PetEggSelectionFrame.Position = UDim2.new(0, 8, 0, 255) -- Adjust position to avoid overlap
 
--- Mobile size adjustment
+-- Function to calculate max height so the list fits on screen on mobile
+local function getMaxPetEggFrameHeight(toggleButton)
+    local screenHeight = workspace.CurrentCamera.ViewportSize.Y
+    local togglePos = toggleButton.AbsolutePosition.Y
+    local toggleHeight = toggleButton.AbsoluteSize.Y
+    local margin = 40 -- margin from bottom of screen
+    local maxHeight = screenHeight - (togglePos + toggleHeight) - margin
+    if maxHeight < 100 then
+        maxHeight = 100 -- minimum height
+    end
+    return maxHeight
+end
+
 if isMobile then
-    PetEggSelectionFrame.Size = UDim2.new(0, 380, 0, 220)
+    -- Set height dynamically for mobile
+    task.defer(function()
+        local maxHeight = getMaxPetEggFrameHeight(buySelectedPetEggsToggle[1])
+        PetEggSelectionFrame.Size = UDim2.new(0, 380, 0, maxHeight)
+    end)
+
+    -- Update height if toggle moves
+    buySelectedPetEggsToggle[1]:GetPropertyChangedSignal("AbsolutePosition"):Connect(function()
+        local maxHeight = getMaxPetEggFrameHeight(buySelectedPetEggsToggle[1])
+        PetEggSelectionFrame.Size = UDim2.new(0, 380, 0, maxHeight)
+    end)
 else
+    -- Fixed size for PC
     PetEggSelectionFrame.Size = UDim2.new(0, 540, 0, 220)
 end
 
