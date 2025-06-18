@@ -1,3 +1,4 @@
+
 -- Services
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -22,13 +23,23 @@ MainGuiFrame.Parent = screenGui
 MainGuiFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
 MainGuiFrame.BorderSizePixel = 0
 MainGuiFrame.Position = UDim2.new(0.519, 0, 0.507, 0)
-MainGuiFrame.Size = UDim2.new(0.9, 0, 0.8, 0)
+MainGuiFrame.Size = UDim2.new(0, 560, 0, 650) -- was 431 x 404 (increased ~1.3x)
 MainGuiFrame.ClipsDescendants = true
 MainGuiFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 
 -- Auto-scale for mobile
 local viewportSize = workspace.CurrentCamera.ViewportSize
 local isMobile = viewportSize.X < 900 or viewportSize.Y < 600
+
+if isMobile then
+    MainGuiFrame.Size = UDim2.new(0, 420, 0, 460) -- scaled down for mobile
+    MainGuiFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+
+    -- Optional: shrink tab buttons
+    MainButton.Size = UDim2.new(0, 200, 0, 36)
+    MerchantsButton.Size = UDim2.new(0, 200, 0, 36)
+end
+
 local TitleLabel = Instance.new("TextLabel")
 TitleLabel.Name = "TitleLabel"
 TitleLabel.Parent = MainGuiFrame
@@ -84,7 +95,7 @@ local function createTabFrame(name)
     frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     frame.BorderSizePixel = 0
     frame.Position = UDim2.new(0, 8, 0, 110) -- was 5,75
-   frame.Size = UDim2.new(1, -16, 1, -120) -- fills almost all of MainGuiFrame
+    frame.Size = UDim2.new(0, 550, 0, 540) -- was 420,320
     frame.Visible = false
     return frame
 end
@@ -146,7 +157,7 @@ local function createToggleButton(parent, text, yPos)
     label.Text = text
     label.TextXAlignment = Enum.TextXAlignment.Left
 
-   local toggle, light = createToggleSquare(container, UDim2.new(1, -70, 0, 6))
+    local toggle, light = createToggleSquare(container, UDim2.new(1, -35, 0, 6)) -- adjusted position for bigger toggle
 
     return {container, toggle, light, false}
 end
@@ -157,20 +168,6 @@ local autoBuySeedsToggle = createToggleButton(MerchantsTabFrame, "Auto Buy Seeds
 local autoHoneyMachineToggle = createToggleButton(MainTabFrame, "Auto Honey Machine", 90)
 local autoPlantToggle = createToggleButton(MainTabFrame, "Auto Plant", 130)
 
--- Auto-scale for mobile devices (after all elements are created)
-local viewportSize = workspace.CurrentCamera.ViewportSize
-local isMobile = viewportSize.X < 900 or viewportSize.Y < 600
-
-if isMobile then
-    -- Resize for smaller screens
-    MainGuiFrame.Size = UDim2.new(0, 420, 0, 500)
-    MainGuiFrame.Position = UDim2.new(0.5, 0, 0.5, 0) -- recenters the frame
-
-    -- Resize tab buttons to fit in smaller width
-    MainButton.Size = UDim2.new(0, 200, 0, 36)
-    MerchantsButton.Size = UDim2.new(0, 200, 0, 36)
-    MerchantsButton.Position = UDim2.new(0, 210, 0, 0) -- move right slightly from Main
-end
 
 
 -- The seed list  (used by both buy seed functions)
@@ -415,7 +412,7 @@ expandCollapseBtn.Parent = buySelectedSeedsToggle[1]
 expandCollapseBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 expandCollapseBtn.BorderSizePixel = 0
 expandCollapseBtn.Size = UDim2.new(0, 32, 0, 28) -- was 25 x 20
-expandCollapseBtn.Position = UDim2.new(1, -50, 0, 6)
+expandCollapseBtn.Position = UDim2.new(1, -75, 0, 6) -- adjusted for bigger toggle & spacing
 expandCollapseBtn.Font = Enum.Font.SourceSansBold
 expandCollapseBtn.TextSize = 26 -- was 18
 expandCollapseBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
@@ -456,8 +453,7 @@ local function createSeedToggle(seedName, yPos)
     label.Text = seedName
     label.TextXAlignment = Enum.TextXAlignment.Left
 
-  local offset = isMobile and -60 or -90
-local toggle, light = createToggleSquare(container, UDim2.new(1, offset, 0, 6))
+    local toggle, light = createToggleSquare(container, UDim2.new(1, -35, 0, 6)) -- adjusted pos
 
     toggle.MouseButton1Click:Connect(function()
         light.Visible = not light.Visible
