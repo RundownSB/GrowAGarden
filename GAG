@@ -447,7 +447,14 @@ expandCollapseBtn.Parent = buySelectedSeedsToggle[1]
 expandCollapseBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 expandCollapseBtn.BorderSizePixel = 0
 expandCollapseBtn.Size = UDim2.new(0, 32, 0, 28) -- was 25 x 20
-expandCollapseBtn.Position = UDim2.new(1, -75, 0, 6) -- adjusted for bigger toggle & spacing
+-- Default position (PC)
+expandCollapseBtn.Position = UDim2.new(1, -75, 0, 6)
+
+-- Mobile adjustment
+if isMobile then
+    expandCollapseBtn.Position = UDim2.new(1, -105, 0, 6) -- push it further left
+end
+
 expandCollapseBtn.Font = Enum.Font.SourceSansBold
 expandCollapseBtn.TextSize = 26 -- was 18
 expandCollapseBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
