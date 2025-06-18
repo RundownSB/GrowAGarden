@@ -934,7 +934,14 @@ expandEventShopBtn.Parent = buySelectedEventShopToggle[1]
 expandEventShopBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 expandEventShopBtn.BorderSizePixel = 0
 expandEventShopBtn.Size = UDim2.new(0, 32, 0, 28)
-expandEventShopBtn.Position = UDim2.new(1, -75, 0, 6)
+
+-- Mobile-aware positioning
+if isMobile then
+    expandEventShopBtn.Position = UDim2.new(1, -105, 0, 6)
+else
+    expandEventShopBtn.Position = UDim2.new(1, -75, 0, 6)
+end
+
 expandEventShopBtn.Font = Enum.Font.SourceSansBold
 expandEventShopBtn.TextSize = 26
 expandEventShopBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
@@ -1045,7 +1052,14 @@ expandPetEggsBtn.Parent = buySelectedPetEggsToggle[1]
 expandPetEggsBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 expandPetEggsBtn.BorderSizePixel = 0
 expandPetEggsBtn.Size = UDim2.new(0, 32, 0, 28)
-expandPetEggsBtn.Position = UDim2.new(1, -75, 0, 6)
+
+-- Adjust position based on device
+if isMobile then
+    expandPetEggsBtn.Position = UDim2.new(1, -105, 0, 6)
+else
+    expandPetEggsBtn.Position = UDim2.new(1, -75, 0, 6)
+end
+
 expandPetEggsBtn.Font = Enum.Font.SourceSansBold
 expandPetEggsBtn.TextSize = 26
 expandPetEggsBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
