@@ -5,6 +5,8 @@ local RunService = game:GetService("RunService")
 local UIS = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local isMobile = UIS.TouchEnabled and not UIS.KeyboardEnabled
+
 local LocalPlayer = Players.LocalPlayer or Players:GetPropertyChangedSignal("LocalPlayer"):Wait()
 
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
@@ -144,7 +146,14 @@ local function createToggleButton(parent, text, yPos)
     label.Text = text
     label.TextXAlignment = Enum.TextXAlignment.Left
 
-    local toggle, light = createToggleSquare(container, UDim2.new(1, -35, 0, 6)) -- adjusted position for bigger toggle
+    local togglePosition
+if UIS.TouchEnabled and not UIS.KeyboardEnabled then
+    togglePosition = UDim2.new(1, -65, 0, 6) -- push it more left for mobile
+else
+    togglePosition = UDim2.new(1, -35, 0, 6) -- normal position for PC
+end
+
+local toggle, light = createToggleSquare(container, togglePosition)
 
     return {container, toggle, light, false}
 end
