@@ -26,6 +26,19 @@ MainGuiFrame.Size = UDim2.new(0, 560, 0, 650) -- was 431 x 404 (increased ~1.3x)
 MainGuiFrame.ClipsDescendants = true
 MainGuiFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 
+-- Auto-scale for mobile
+local viewportSize = workspace.CurrentCamera.ViewportSize
+local isMobile = viewportSize.X < 900 or viewportSize.Y < 600
+
+if isMobile then
+    MainGuiFrame.Size = UDim2.new(0, 420, 0, 460) -- scaled down for mobile
+    MainGuiFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+
+    -- Optional: shrink tab buttons
+    MainButton.Size = UDim2.new(0, 200, 0, 36)
+    MerchantsButton.Size = UDim2.new(0, 200, 0, 36)
+end
+
 local TitleLabel = Instance.new("TextLabel")
 TitleLabel.Name = "TitleLabel"
 TitleLabel.Parent = MainGuiFrame
