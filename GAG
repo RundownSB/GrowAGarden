@@ -1172,7 +1172,7 @@ local petEggList = {
     "Bug Egg"
 }
 
-local buySelectedPetEggsToggle = createToggleButton(MerchantsTabFrame, "Buy Selected Pet Eggs", 170) -- Adjust Y position as needed
+local buySelectedPetEggsToggle = createToggleButton(MerchantsTabFrame, "Buy Selected Pet Eggs", 170)
 
 local expandPetEggsBtn = Instance.new("TextButton")
 expandPetEggsBtn.Name = "ExpandPetEggsBtn"
@@ -1181,7 +1181,6 @@ expandPetEggsBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 expandPetEggsBtn.BorderSizePixel = 0
 expandPetEggsBtn.Size = UDim2.new(0, 32, 0, 28)
 
--- Adjust position based on device
 if isMobile then
     expandPetEggsBtn.Position = UDim2.new(1, -105, 0, 6)
 else
@@ -1200,41 +1199,30 @@ local PetEggSelectionFrame = Instance.new("ScrollingFrame")
 PetEggSelectionFrame.Name = "PetEggSelectionFrame"
 PetEggSelectionFrame.Parent = MerchantsTabFrame
 PetEggSelectionFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-PetEggSelectionFrame.Position = UDim2.new(0, 8, 0, 255) -- Adjust position to avoid overlap
+PetEggSelectionFrame.ScrollBarThickness = 8
+PetEggSelectionFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+PetEggSelectionFrame.Visible = false
 
--- Function to calculate max height so the list fits on screen on mobile
-local function getMaxPetEggFrameHeight(toggleButton)
+-- Function to calculate max height and Y position for mobile
+local function updatePetEggFrameMobile()
+    local toggleAbsPos = buySelectedPetEggsToggle[1].AbsolutePosition
+    local toggleAbsSize = buySelectedPetEggsToggle[1].AbsoluteSize
     local screenHeight = workspace.CurrentCamera.ViewportSize.Y
-    local togglePos = toggleButton.AbsolutePosition.Y
-    local toggleHeight = toggleButton.AbsoluteSize.Y
-    local margin = 40 -- margin from bottom of screen
-    local maxHeight = screenHeight - (togglePos + toggleHeight) - margin
-    if maxHeight < 100 then
-        maxHeight = 100 -- minimum height
-    end
-    return maxHeight
+    local margin = 40
+    local newY = toggleAbsPos.Y + toggleAbsSize.Y + 5
+    local maxHeight = screenHeight - newY - margin
+    if maxHeight < 100 then maxHeight = 100 end
+    PetEggSelectionFrame.Position = UDim2.new(0, 8, 0, newY)
+    PetEggSelectionFrame.Size = UDim2.new(0, 380, 0, maxHeight)
 end
 
 if isMobile then
-    -- Set height dynamically for mobile
-    task.defer(function()
-        local maxHeight = getMaxPetEggFrameHeight(buySelectedPetEggsToggle[1])
-        PetEggSelectionFrame.Size = UDim2.new(0, 380, 0, maxHeight)
-    end)
-
-    -- Update height if toggle moves
-    buySelectedPetEggsToggle[1]:GetPropertyChangedSignal("AbsolutePosition"):Connect(function()
-        local maxHeight = getMaxPetEggFrameHeight(buySelectedPetEggsToggle[1])
-        PetEggSelectionFrame.Size = UDim2.new(0, 380, 0, maxHeight)
-    end)
+    task.defer(updatePetEggFrameMobile)
+    buySelectedPetEggsToggle[1]:GetPropertyChangedSignal("AbsolutePosition"):Connect(updatePetEggFrameMobile)
 else
-    -- Fixed size for PC
+    PetEggSelectionFrame.Position = UDim2.new(0, 8, 0, 255)
     PetEggSelectionFrame.Size = UDim2.new(0, 540, 0, 220)
 end
-
-PetEggSelectionFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-PetEggSelectionFrame.ScrollBarThickness = 8
-PetEggSelectionFrame.Visible = false
 
 local petEggToggles = {}
 
@@ -1244,17 +1232,9 @@ local function createPetEggToggle(eggName, yPos)
     container.Parent = PetEggSelectionFrame
     container.BackgroundTransparency = 1
 
-    local containerWidthOffset = -15
-    local labelWidthOffset = -40
-    local togglePosition
-
-    if isMobile then
-        containerWidthOffset = -30
-        labelWidthOffset = -60
-        togglePosition = UDim2.new(1, -65, 0, 6) -- toggle moved left on mobile
-    else
-        togglePosition = UDim2.new(1, -35, 0, 6)
-    end
+    local containerWidthOffset = isMobile and -30 or -15
+    local labelWidthOffset = isMobile and -60 or -40
+    local togglePosition = isMobile and UDim2.new(1, -65, 0, 6) or UDim2.new(1, -35, 0, 6)
 
     container.Size = UDim2.new(1, containerWidthOffset, 0, 38)
     container.Position = UDim2.new(0, 5, 0, yPos)
@@ -1292,7 +1272,6 @@ expandPetEggsBtn.MouseButton1Click:Connect(function()
     PetEggSelectionFrame.Visible = petEggsListVisible
     expandPetEggsBtn.Text = petEggsListVisible and "▼" or "▶"
 
-    -- Hide other merchant buttons if pet eggs list is open
     for _, child in pairs(MerchantsTabFrame:GetChildren()) do
         if child:IsA("Frame") and child ~= buySelectedPetEggsToggle[1] and child ~= PetEggSelectionFrame then
             child.Visible = not petEggsListVisible
@@ -1300,17 +1279,14 @@ expandPetEggsBtn.MouseButton1Click:Connect(function()
     end
 end)
 
-
 local function getEggNameToStallIndicesMap()
     local map = {}
     local validCount = 0
     local eggLocations = workspace.NPCS["Pet Stand"].EggLocations:GetChildren()
     for _, egg in ipairs(eggLocations) do
-        if egg.Name ~= "Location" then -- skip non-egg entries
-            validCount = validCount + 1
-            if not map[egg.Name] then
-                map[egg.Name] = {}
-            end
+        if egg.Name ~= "Location" then
+            validCount += 1
+            map[egg.Name] = map[egg.Name] or {}
             table.insert(map[egg.Name], validCount)
         end
     end
@@ -1324,14 +1300,14 @@ buySelectedPetEggsToggle[2].MouseButton1Click:Connect(function()
     if buySelectedPetEggs then
         task.spawn(function()
             while buySelectedPetEggs do
-                local eggNameToStallIndices = getEggNameToStallIndicesMap()
+                local eggMap = getEggNameToStallIndicesMap()
                 for eggName, enabled in pairs(petEggToggles) do
                     if enabled then
-                        local stallIndices = eggNameToStallIndices[eggName]
-                        if stallIndices then
-                            for _, stallIndex in ipairs(stallIndices) do
+                        local stalls = eggMap[eggName]
+                        if stalls then
+                            for _, index in ipairs(stalls) do
                                 pcall(function()
-                                    ReplicatedStorage.GameEvents.BuyPetEgg:FireServer(stallIndex)
+                                    ReplicatedStorage.GameEvents.BuyPetEgg:FireServer(index)
                                 end)
                                 task.wait(0.3)
                             end
