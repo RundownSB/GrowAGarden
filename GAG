@@ -996,7 +996,14 @@ EventShopSelectionFrame.Name = "EventShopSelectionFrame"
 EventShopSelectionFrame.Parent = MerchantsTabFrame
 EventShopSelectionFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 EventShopSelectionFrame.Position = UDim2.new(0, 8, 0, 140)
-EventShopSelectionFrame.Size = UDim2.new(0, 540, 0, 330)
+
+-- Mobile adjustment: narrower width on mobile
+if isMobile then
+    EventShopSelectionFrame.Size = UDim2.new(0, 380, 0, 330)
+else
+    EventShopSelectionFrame.Size = UDim2.new(0, 540, 0, 330)
+end
+
 EventShopSelectionFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 EventShopSelectionFrame.ScrollBarThickness = 8
 EventShopSelectionFrame.Visible = false
@@ -1008,7 +1015,20 @@ local function createEventShopToggle(itemName, yPos)
     container.Name = itemName .. "Container"
     container.Parent = EventShopSelectionFrame
     container.BackgroundTransparency = 1
-    container.Size = UDim2.new(1, -15, 0, 38)
+
+    local containerWidthOffset = -15
+    local labelWidthOffset = -40
+    local togglePosition
+
+    if isMobile then
+        containerWidthOffset = -30
+        labelWidthOffset = -60
+        togglePosition = UDim2.new(1, -65, 0, 6) -- toggle pushed left more on mobile
+    else
+        togglePosition = UDim2.new(1, -35, 0, 6) -- normal position for PC
+    end
+
+    container.Size = UDim2.new(1, containerWidthOffset, 0, 38)
     container.Position = UDim2.new(0, 5, 0, yPos)
 
     local label = Instance.new("TextLabel")
@@ -1016,14 +1036,14 @@ local function createEventShopToggle(itemName, yPos)
     label.Parent = container
     label.BackgroundTransparency = 1
     label.Position = UDim2.new(0, 0, 0, 0)
-    label.Size = UDim2.new(1, -40, 1, 0)
+    label.Size = UDim2.new(1, labelWidthOffset, 1, 0)
     label.Font = Enum.Font.SourceSans
     label.TextSize = 22
     label.TextColor3 = Color3.fromRGB(255, 255, 255)
     label.Text = itemName
     label.TextXAlignment = Enum.TextXAlignment.Left
 
-    local toggle, light = createToggleSquare(container, UDim2.new(1, -35, 0, 6))
+    local toggle, light = createToggleSquare(container, togglePosition)
 
     toggle.MouseButton1Click:Connect(function()
         light.Visible = not light.Visible
@@ -1051,6 +1071,7 @@ expandEventShopBtn.MouseButton1Click:Connect(function()
         end
     end
 end)
+
 
 local buySelectedEventShop = false
 buySelectedEventShopToggle[2].MouseButton1Click:Connect(function()
@@ -1114,7 +1135,14 @@ PetEggSelectionFrame.Name = "PetEggSelectionFrame"
 PetEggSelectionFrame.Parent = MerchantsTabFrame
 PetEggSelectionFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 PetEggSelectionFrame.Position = UDim2.new(0, 8, 0, 255) -- Adjust position to avoid overlap
-PetEggSelectionFrame.Size = UDim2.new(0, 540, 0, 220)
+
+-- Mobile size adjustment
+if isMobile then
+    PetEggSelectionFrame.Size = UDim2.new(0, 380, 0, 220)
+else
+    PetEggSelectionFrame.Size = UDim2.new(0, 540, 0, 220)
+end
+
 PetEggSelectionFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 PetEggSelectionFrame.ScrollBarThickness = 8
 PetEggSelectionFrame.Visible = false
@@ -1126,7 +1154,20 @@ local function createPetEggToggle(eggName, yPos)
     container.Name = eggName .. "Container"
     container.Parent = PetEggSelectionFrame
     container.BackgroundTransparency = 1
-    container.Size = UDim2.new(1, -15, 0, 38)
+
+    local containerWidthOffset = -15
+    local labelWidthOffset = -40
+    local togglePosition
+
+    if isMobile then
+        containerWidthOffset = -30
+        labelWidthOffset = -60
+        togglePosition = UDim2.new(1, -65, 0, 6) -- toggle moved left on mobile
+    else
+        togglePosition = UDim2.new(1, -35, 0, 6)
+    end
+
+    container.Size = UDim2.new(1, containerWidthOffset, 0, 38)
     container.Position = UDim2.new(0, 5, 0, yPos)
 
     local label = Instance.new("TextLabel")
@@ -1134,14 +1175,14 @@ local function createPetEggToggle(eggName, yPos)
     label.Parent = container
     label.BackgroundTransparency = 1
     label.Position = UDim2.new(0, 0, 0, 0)
-    label.Size = UDim2.new(1, -40, 1, 0)
+    label.Size = UDim2.new(1, labelWidthOffset, 1, 0)
     label.Font = Enum.Font.SourceSans
     label.TextSize = 22
     label.TextColor3 = Color3.fromRGB(255, 255, 255)
     label.Text = eggName
     label.TextXAlignment = Enum.TextXAlignment.Left
 
-    local toggle, light = createToggleSquare(container, UDim2.new(1, -35, 0, 6))
+    local toggle, light = createToggleSquare(container, togglePosition)
 
     toggle.MouseButton1Click:Connect(function()
         light.Visible = not light.Visible
@@ -1169,6 +1210,7 @@ expandPetEggsBtn.MouseButton1Click:Connect(function()
         end
     end
 end)
+
 
 local function getEggNameToStallIndicesMap()
     local map = {}
