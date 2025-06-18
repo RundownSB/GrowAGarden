@@ -1,3 +1,4 @@
+
 -- Services
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -148,24 +149,51 @@ local function createToggleButton(parent, text, yPos)
     return {container, toggle, light, false}
 end
 
+if isMobile then
+    -- Shrink and reposition the MainGuiFrame to fit mobile
+    MainGuiFrame.Size = UDim2.new(0, 420, 0, 400)
+    MainGuiFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+
+    -- Adjust tab buttons
+    MainButton.Size = UDim2.new(0, 200, 0, 36)
+    MerchantsButton.Size = UDim2.new(0, 200, 0, 36)
+    MerchantsButton.Position = UDim2.new(0, 210, 0, 0)
+
+    -- Adjust tab frame height to show toggle buttons
+    MainTabFrame.Position = UDim2.new(0, 8, 0, 100)
+    MainTabFrame.Size = UDim2.new(1, -16, 1, -130)  -- was -120
+
+    MerchantsTabFrame.Position = UDim2.new(0, 8, 0, 100)
+    MerchantsTabFrame.Size = UDim2.new(1, -16, 1, -130)
+end
+
 local autoSell = createToggleButton(MainTabFrame, "Auto Sell", 5)
 local autoFastCollect = createToggleButton(MainTabFrame, "Auto Fast Collect", 55) 
 local autoBuySeedsToggle = createToggleButton(MerchantsTabFrame, "Auto Buy Seeds", 5)
 local autoHoneyMachineToggle = createToggleButton(MainTabFrame, "Auto Honey Machine", 90)
 local autoPlantToggle = createToggleButton(MainTabFrame, "Auto Plant", 130)
 
-local function adjustToggleForMobile(toggleTable)
-    if isMobile then
-        -- Move the toggle button more left on mobile
-        toggleTable[2].Position = UDim2.new(1, -60, 0, 6) -- was -90 before
-    end
-end
+-- ...all your createToggleButton, expand/collapse logic, etc.
 
-adjustToggleForMobile(autoSell)
-adjustToggleForMobile(autoFastCollect)
-adjustToggleForMobile(autoBuySeedsToggle)
-adjustToggleForMobile(autoHoneyMachineToggle)
-adjustToggleForMobile(autoPlantToggle)
+-- MOBILE-SPECIFIC ADJUSTMENTS (must run *after* UI elements exist)
+local viewportSize = workspace.CurrentCamera.ViewportSize
+local isMobile     = viewportSize.X < 900 or viewportSize.Y < 600
+
+if isMobile then
+    MainGuiFrame.Size     = UDim2.new(0, 420, 0, 480)
+    MainGuiFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+
+    TitleLabel.TextSize   = 20
+    TitleLabel.Size       = UDim2.new(1, -20, 0, 28)
+    TitleLabel.Position   = UDim2.new(0, 10, 0, 6)
+
+    MainButton.Size       = UDim2.new(0, 180, 0, 30)
+    MerchantsButton.Size  = UDim2.new(0, 180, 0, 30)
+    MerchantsButton.Position = UDim2.new(0, 190, 0, 0)
+    
+    TabButtonsFrame.Size      = UDim2.new(0, 370, 0, 30)
+    TabButtonsFrame.Position  = UDim2.new(0, 10, 0, 45)
+end
 
 
 -- The seed list  (used by both buy seed functions)
