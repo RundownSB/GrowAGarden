@@ -84,7 +84,7 @@ local function createTabFrame(name)
     frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     frame.BorderSizePixel = 0
     frame.Position = UDim2.new(0, 8, 0, 110) -- was 5,75
-    frame.Size = UDim2.new(0, 550, 0, 540) -- was 420,320
+   frame.Size = UDim2.new(1, -16, 1, -120) -- fills almost all of MainGuiFrame
     frame.Visible = false
     return frame
 end
