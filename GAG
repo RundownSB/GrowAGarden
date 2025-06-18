@@ -146,7 +146,7 @@ local function createToggleButton(parent, text, yPos)
     label.Text = text
     label.TextXAlignment = Enum.TextXAlignment.Left
 
-    local toggle, light = createToggleSquare(container, UDim2.new(1, -35, 0, 6)) -- adjusted position for bigger toggle
+    local toggle, light = createToggleSquare(container, UDim2.new(1, -60, 0, 6)) -- adjusted position for bigger toggle
 
     return {container, toggle, light, false}
 end
