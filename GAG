@@ -6,9 +6,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local LocalPlayer = Players.LocalPlayer or Players:GetPropertyChangedSignal("LocalPlayer"):Wait()
 
-local UIS = game:GetService("UserInputService")
-local isMobile = UIS.TouchEnabled and not UIS.KeyboardEnabled
-
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 local oldGui = PlayerGui:FindFirstChild("MainGui")
