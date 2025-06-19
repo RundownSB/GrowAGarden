@@ -1320,6 +1320,73 @@ buySelectedPetEggsToggle[2].MouseButton1Click:Connect(function()
     end
 end)
 
+
+-- === Seed Crafter Button (with hardcoded UUID and final Craft step) ===
+
+local seedCrafterToggle = createToggleButton(MerchantsTabFrame, "Seed Crafter", 215)
+
+seedCrafterToggle[2].MouseButton1Click:Connect(function()
+    local enabled = not seedCrafterToggle[3].Visible
+    seedCrafterToggle[3].Visible = enabled
+
+    if enabled then
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local Players = game:GetService("Players")
+        local LocalPlayer = Players.LocalPlayer
+        local Backpack = LocalPlayer.Backpack
+        local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+
+        local craftingBench = workspace:WaitForChild("Interaction"):WaitForChild("UpdateItems"):WaitForChild("NewCrafting"):WaitForChild("SeedEventCraftingWorkBench")
+
+        -- Step 1: Set the recipe
+        ReplicatedStorage.GameEvents.CraftingGlobalObjectService:FireServer(
+            "SetRecipe",
+            craftingBench,
+            "SeedEventWorkbench",
+            "Crafters Seed Pack"
+        )
+
+        -- Step 2: Equip Flower Seed Pack from backpack
+        local seedTool = nil
+        for _, tool in ipairs(Backpack:GetChildren()) do
+            if tool:IsA("Tool") and tool.Name:find("Flower Seed Pack") then
+                seedTool = tool
+                break
+            end
+        end
+
+        if seedTool then
+            seedTool.Parent = Character
+            task.wait(0.2)
+
+            -- Step 3: Input the seed pack into the crafting bench
+            ReplicatedStorage.GameEvents.CraftingGlobalObjectService:FireServer(
+                "InputItem",
+                craftingBench,
+                "SeedEventWorkbench",
+                1,
+                {
+                    ItemType = "Seed Pack",
+                    ItemData = {
+                        UUID = "{cfa5058a-1daa-494b-82d4-6bd074ceb1a4}"
+                    }
+                }
+            )
+
+            task.wait(0.5) -- slight delay before crafting
+
+            -- ✅ Step 4: Final Craft trigger
+            ReplicatedStorage.GameEvents.CraftingGlobalObjectService:FireServer(
+                "Craft",
+                craftingBench,
+                "SeedEventWorkbench"
+            )
+        else
+            warn("[SeedCrafter] ❌ No Flower Seed Pack found in backpack.")
+        end
+    end
+end)
+
 -- Toggle GUI Button
 local toggleGuiButton = Instance.new("TextButton")
 toggleGuiButton.Name = "ToggleGuiButton"
