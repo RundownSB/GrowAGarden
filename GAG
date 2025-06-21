@@ -1333,7 +1333,7 @@ buySelectedPetEggsToggle[2].MouseButton1Click:Connect(function()
 end)
 
 
--- === Seed Crafter Button (with crafting, hardcoded UUID, and auto-claim) ===
+-- === Seed Crafter Button (with 20m30s wait and auto-looping claim) ===
 
 local seedCrafterToggle = createToggleButton(MerchantsTabFrame, "Seed Crafter", 215)
 
@@ -1349,73 +1349,78 @@ seedCrafterToggle[2].MouseButton1Click:Connect(function()
         local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
         local craftingBench = workspace:WaitForChild("Interaction"):WaitForChild("UpdateItems"):WaitForChild("NewCrafting"):WaitForChild("SeedEventCraftingWorkBench")
 
-        -- Step 1: Set the recipe
-        ReplicatedStorage.GameEvents.CraftingGlobalObjectService:FireServer(
-            "SetRecipe",
-            craftingBench,
-            "SeedEventWorkbench",
-            "Crafters Seed Pack"
-        )
+        task.spawn(function()
+            while seedCrafterToggle[3].Visible do
+                -- Step 1: Set the recipe
+                ReplicatedStorage.GameEvents.CraftingGlobalObjectService:FireServer(
+                    "SetRecipe",
+                    craftingBench,
+                    "SeedEventWorkbench",
+                    "Crafters Seed Pack"
+                )
 
-        -- Step 2: Equip Flower Seed Pack
-        local seedTool = nil
-        for _, tool in ipairs(Backpack:GetChildren()) do
-            if tool:IsA("Tool") and tool.Name:find("Flower Seed Pack") then
-                seedTool = tool
-                break
-            end
-        end
-
-        if seedTool then
-            seedTool.Parent = Character
-            task.wait(0.2)
-
-            -- Step 3: Input the seed pack with hardcoded UUID
-            ReplicatedStorage.GameEvents.CraftingGlobalObjectService:FireServer(
-                "InputItem",
-                craftingBench,
-                "SeedEventWorkbench",
-                1,
-                {
-                    ItemType = "Seed Pack",
-                    ItemData = {
-                        UUID = "{34341378-fd14-4845-a405-13883b358be3}"
-                    }
-                }
-            )
-
-            task.wait(0.5)
-
-            -- Step 4: Start the crafting
-            ReplicatedStorage.GameEvents.CraftingGlobalObjectService:FireServer(
-                "Craft",
-                craftingBench,
-                "SeedEventWorkbench"
-            )
-
-            -- Step 5: Wait for the timer model to disappear (crafting done)
-            task.spawn(function()
-                local timerModel = craftingBench:FindFirstChild("TimerModel")
-                if timerModel then
-                    while timerModel.Parent and seedCrafterToggle[3].Visible do
-                        task.wait(1)
+                -- Step 2: Equip Flower Seed Pack
+                local seedTool = nil
+                for _, tool in ipairs(Backpack:GetChildren()) do
+                    if tool:IsA("Tool") and tool.Name:find("Flower Seed Pack") then
+                        seedTool = tool
+                        break
                     end
                 end
 
-                -- Step 6: Claim when timer gone
+                if not seedTool then
+                    warn("[SeedCrafter] ❌ No Flower Seed Pack found in backpack.")
+                    break -- Exit the loop if no seed pack
+                end
+
+                seedTool.Parent = Character
+                task.wait(0.2)
+
+                -- Step 3: Input item with hardcoded UUID
+                ReplicatedStorage.GameEvents.CraftingGlobalObjectService:FireServer(
+                    "InputItem",
+                    craftingBench,
+                    "SeedEventWorkbench",
+                    1,
+                    {
+                        ItemType = "Seed Pack",
+                        ItemData = {
+                            UUID = "{34341378-fd14-4845-a405-13883b358be3}"
+                        }
+                    }
+                )
+
+                task.wait(0.5)
+
+                -- Step 4: Start crafting
+                ReplicatedStorage.GameEvents.CraftingGlobalObjectService:FireServer(
+                    "Craft",
+                    craftingBench,
+                    "SeedEventWorkbench"
+                )
+
+                print("[SeedCrafter] ⏳ Waiting 20 minutes and 30 seconds to claim...")
+
+                -- Step 5: Wait 20 minutes and 30 seconds (1230 seconds)
+                for i = 1, 1230 do
+                    if not seedCrafterToggle[3].Visible then return end
+                    task.wait(1)
+                end
+
+                -- Step 6: Claim the crafted item
                 ReplicatedStorage.GameEvents.CraftingGlobalObjectService:FireServer(
                     "Claim",
                     craftingBench,
                     "SeedEventWorkbench",
                     1
                 )
-            end)
-        else
-            warn("[SeedCrafter] ❌ No Flower Seed Pack found in backpack.")
-        end
+
+                print("[SeedCrafter] ✅ Claimed crafted item. Looping...")
+                task.wait(1) -- short pause before next round
+            end
+        end)
     end
 end)
-
 
 -- Toggle GUI Button
 local toggleGuiButton = Instance.new("TextButton")
