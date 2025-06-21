@@ -610,7 +610,7 @@ end)
 
 local gearList = {
     "Watering Can", "Trowel", "Recall Wrench", "Basic Sprinkler", "Advanced Sprinkler",
-    "Godly Sprinkler", "Lightning Rod", "Master Sprinkler", "Cleaning Spray",
+    "Godly Sprinkler", "Tanning Mirror", "Master Sprinkler", "Cleaning Spray",
     "Favorite Tool", "Harvest Tool", "Friendship Pot"
 }
 
@@ -1177,10 +1177,10 @@ end)
 
 local petEggList = {
     "Common Egg",
-    "Uncommon Egg",
-    "Rare Egg",
-    "Legendary Egg",
+    "Common Summer Egg",
+    "Rare Summer Egg",
     "Mythical Egg",
+    "Paradise Egg",
     "Bug Egg"
 }
 
