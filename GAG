@@ -1127,15 +1127,17 @@ PetEggSelectionFrame.ScrollBarThickness = 8
 PetEggSelectionFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 PetEggSelectionFrame.Visible = false
 
--- Function to calculate max height and Y position for mobile
+-- Function to calculate max height and Y position for mobile (flush positioning)
 local function updatePetEggFrameMobile()
     local toggleAbsPos = buySelectedPetEggsToggle[1].AbsolutePosition
     local toggleAbsSize = buySelectedPetEggsToggle[1].AbsoluteSize
     local screenHeight = workspace.CurrentCamera.ViewportSize.Y
     local margin = 40
-    local newY = toggleAbsPos.Y + toggleAbsSize.Y - 5
+
+    local newY = toggleAbsPos.Y + toggleAbsSize.Y  -- flush with toggle
     local maxHeight = screenHeight - newY - margin
     if maxHeight < 100 then maxHeight = 100 end
+
     PetEggSelectionFrame.Position = UDim2.new(0, 8, 0, newY)
     PetEggSelectionFrame.Size = UDim2.new(0, 380, 0, maxHeight)
 end
