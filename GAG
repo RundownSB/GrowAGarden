@@ -1133,7 +1133,7 @@ local function updatePetEggFrameMobile()
     local toggleAbsSize = buySelectedPetEggsToggle[1].AbsoluteSize
     local screenHeight = workspace.CurrentCamera.ViewportSize.Y
     local margin = 40
-    local newY = toggleAbsPos.Y + toggleAbsSize.Y - 2
+    local newY = toggleAbsPos.Y + toggleAbsSize.Y - 5
     local maxHeight = screenHeight - newY - margin
     if maxHeight < 100 then maxHeight = 100 end
     PetEggSelectionFrame.Position = UDim2.new(0, 8, 0, newY)
