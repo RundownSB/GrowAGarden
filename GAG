@@ -1181,7 +1181,7 @@ local petEggList = {
     "Rare Summer Egg",
     "Mythical Egg",
     "Paradise Egg",
-    "Bee Egg"
+    "Bee Egg",
     "Bug Egg"
 }
 
