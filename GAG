@@ -313,112 +313,24 @@ autoSell[3].Visible = true
 end)
 
 
-local function fastCollectLoop()
-    local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-    local hrp = character:WaitForChild("HumanoidRootPart")
-    
-    while fastCollectEnabled do
-        if isSelling then
-            task.wait(0.5) -- Wait and skip teleport while selling
-        else
-            for _, pos in ipairs(allPositions) do
-                if not fastCollectEnabled or isSelling then break end
-                
-                hrp.CFrame = CFrame.new(pos)
-                task.wait(0.3)
-                
-                pcall(function()
-                    CollectController:Collect()
-                end)
-                
-                task.wait(0.2)
-            end
-            task.wait(1)
-        end
-    end
-end
-
-autoFastCollect[2].MouseButton1Click:Connect(function()
-    fastCollectEnabled = not fastCollectEnabled
-    autoFastCollect[3].Visible = fastCollectEnabled
-    if fastCollectEnabled then
-        task.spawn(fastCollectLoop)
-    end
-end)
-
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
 
 local LocalPlayer = Players.LocalPlayer
-local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-local hrp = character:WaitForChild("HumanoidRootPart")
-
 local CollectController = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("CollectController"))
-
--- Corners for the farm rectangles (same as auto plant)
-local corners1 = {
-    Vector3.new(-2.995, 3.310, -76.030),
-    Vector3.new(-2.585, 3.510, -134.168),
-    Vector3.new(26.753, 3.110, -133.151),
-    Vector3.new(26.499, 3.110, -76.296)
-}
-local corners2 = {
-    Vector3.new(41.352, 3.110, -76.546),
-    Vector3.new(41.325, 3.110, -133.498),
-    Vector3.new(70.657, 3.110, -133.540),
-    Vector3.new(70.601, 3.110, -76.555)
-}
-
-local function generatePositions(corners, step)
-    step = step or 10
-    local positions = {}
-
-    local xs = {corners[1].X, corners[2].X, corners[3].X, corners[4].X}
-    local zs = {corners[1].Z, corners[2].Z, corners[3].Z, corners[4].Z}
-    local ys = {corners[1].Y, corners[2].Y, corners[3].Y, corners[4].Y}
-
-    local minX, maxX = math.min(table.unpack(xs)), math.max(table.unpack(xs))
-    local minZ, maxZ = math.min(table.unpack(zs)), math.max(table.unpack(zs))
-    local avgY = (ys[1] + ys[2] + ys[3] + ys[4]) / 4
-
-    for x = minX, maxX, step do
-        for z = minZ, maxZ, step do
-            table.insert(positions, Vector3.new(x, avgY, z))
-        end
-    end
-
-    return positions
-end
-
-local allPositions = {}
-for _, pos in ipairs(generatePositions(corners1)) do
-    table.insert(allPositions, pos)
-end
-for _, pos in ipairs(generatePositions(corners2)) do
-    table.insert(allPositions, pos)
-end
 
 local fastCollectEnabled = false
 
 local function fastCollectLoop()
     while fastCollectEnabled do
-        for _, pos in ipairs(allPositions) do
-            if not fastCollectEnabled then break end
-            
-            hrp.CFrame = CFrame.new(pos)
-            task.wait(0.3) -- wait for position to settle
-            
-            pcall(function()
-                CollectController:Collect()
-            end)
-            
-            task.wait(0.2)
-        end
-        task.wait(1) -- optional delay between loops
+        pcall(function()
+            CollectController:Collect()
+        end)
+        task.wait(0.1) -- adjust speed here
     end
 end
 
+-- Example toggle button (replace autoFastCollect with your GUI button)
 autoFastCollect[2].MouseButton1Click:Connect(function()
     fastCollectEnabled = not fastCollectEnabled
     autoFastCollect[3].Visible = fastCollectEnabled
@@ -426,7 +338,6 @@ autoFastCollect[2].MouseButton1Click:Connect(function()
         task.spawn(fastCollectLoop)
     end
 end)
-
 
 -- Auto Buy Seeds Logic (Original one, unchanged)
 local function autoBuySeedsLoop()
