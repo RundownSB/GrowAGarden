@@ -326,7 +326,7 @@ local function fastCollectLoop()
         pcall(function()
             CollectController:Collect()
         end)
-        task.wait(0.1) -- adjust speed here
+        task.wait(0.01) -- adjust speed here
     end
 end
 
