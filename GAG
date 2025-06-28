@@ -1019,9 +1019,8 @@ end)
 -- === Buy Selected Event Shop Items with collapsible list ===
 
 local eventShopList = {
-    "Flower Seed Pack", "Lavender", "Nectarshade", "Nectarine", "Hive Fruit", 
-    "Pollen Radar", "Nectar Staff", "Honey Sprinkler", "Bee Egg", "Bee Crate", 
-    "Honey Comb", "Bee Chair", "Honey Torch", "Honey Walkway"
+    "Summer Seed Pack", "Delphinium", "Lily of the Valley", "Traveler's Fruit",
+    "Mutation Spray Burnt", "Oasis Crate", "Oasis Egg", "Hamster"
 }
 
 local buySelectedEventShopToggle = createToggleButton(MerchantsTabFrame, "Buy Selected EventShop", 85)
