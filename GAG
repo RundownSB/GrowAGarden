@@ -1055,6 +1055,90 @@ buyFromHoneyShopToggle[2].MouseButton1Click:Connect(function()
     end
 end)
 
+-- === Auto Dino Machine ===
+
+local autoDinoMachineToggle = createToggleButton(MainTabFrame, "Auto Dino Machine", 250)
+
+local autoDinoMachine = false
+
+local targetPetNames = {
+    "Golden Lab",
+    "Dog",
+    "Bunny"
+}
+
+local function getBasePetName(name)
+    return name:match("^(.-)%s*%[") or name
+end
+
+autoDinoMachineToggle[2].MouseButton1Click:Connect(function()
+    autoDinoMachine = not autoDinoMachine
+    autoDinoMachineToggle[3].Visible = autoDinoMachine
+
+    if autoDinoMachine then
+        task.spawn(function()
+            while autoDinoMachine do
+                local player = game:GetService("Players").LocalPlayer
+                local backpack = player:WaitForChild("Backpack")
+                local character = player.Character or player.CharacterAdded:Wait()
+                local humanoid = character:WaitForChild("Humanoid")
+
+                local equipped = character:FindFirstChildOfClass("Tool")
+                local holdingTargetPet = false
+
+                if equipped then
+                    local baseEquippedName = getBasePetName(equipped.Name)
+                    for _, target in ipairs(targetPetNames) do
+                        if baseEquippedName == target then
+                            holdingTargetPet = true
+                            break
+                        end
+                    end
+                end
+
+                if not holdingTargetPet then
+                    for _, tool in ipairs(backpack:GetChildren()) do
+                        if tool:IsA("Tool") then
+                            local baseName = getBasePetName(tool.Name)
+
+                            for _, target in ipairs(targetPetNames) do
+                                if baseName == target then
+                                    humanoid:EquipTool(tool)
+                                    print("Equipped:", tool.Name)
+
+                                    -- 🔁 Interact with Dino Machine
+                                    local args = { "MachineInteract" }
+                                    game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("DinoMachineService_RE"):FireServer(unpack(args))
+
+                                    -- ⏱️ Wait 24 minutes, 10 seconds
+                                    print("Waiting 24m10s before claiming reward...")
+                                    for i = 1, 1450 do
+                                        if not autoDinoMachine then return end
+                                        task.wait(1)
+                                    end
+
+                                    -- 🎁 Claim reward
+                                    local claimArgs = { "ClaimReward" }
+                                    game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("DinoMachineService_RE"):FireServer(unpack(claimArgs))
+                                    print("Claimed Dino Machine reward.")
+
+                                    break
+                                end
+                            end
+
+                            if humanoid:FindFirstChildOfClass("Tool") then
+                                break -- Stop after handling one pet
+                            end
+                        end
+                    end
+                end
+
+                task.wait(1.5)
+            end
+        end)
+    end
+end)
+
 -- Toggle GUI Button
 local toggleGuiButton = Instance.new("TextButton")
 toggleGuiButton.Name = "ToggleGuiButton"
