@@ -969,7 +969,7 @@ if isMobile then
     task.defer(updateSize)
     buyFromHoneyShopToggle[1]:GetPropertyChangedSignal("AbsolutePosition"):Connect(updateSize)
 else
-    HoneyShopSelectionFrame.Position = UDim2.new(0, 8, 0, 255)
+    HoneyShopSelectionFrame.Position = UDim2.new(0, 8, 0, 130)
     HoneyShopSelectionFrame.Size = UDim2.new(0, 540, 0, 220)
 end
 
