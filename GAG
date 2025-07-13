@@ -525,9 +525,9 @@ end)
 -- === Buy Selected Gear with collapsible list ===
 
 local gearList = {
-    "Watering Can", "Trowel", "Recall Wrench", "Basic Sprinkler", "Advanced Sprinkler",
+    "Watering Can", "Trowel", "Recall Wrench", "Basic Sprinkler", "Advanced Sprinkler", "Medium Toy", "Medium Treat", 
     "Godly Sprinkler", "Magnifying Glass", "Tanning Mirror", "Master Sprinkler", "Cleaning Spray",
-    "Favorite Tool", "Harvest Tool", "Friendship Pot"
+    "Favorite Tool", "Harvest Tool", "Friendship Pot", "Levelup Lollipop"
 }
 
 local buySelectedGearToggle = createToggleButton(MerchantsTabFrame, "Buy Selected Gear", 130)
@@ -788,145 +788,6 @@ autoPlantToggle[3].Visible = autoPlantEnabled
                 task.wait(1)
             end
         end)
-    end
-end)
-
--- Auto Honey Machine Script (Full Version)
-
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local Backpack = LocalPlayer.Backpack
-local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-
-local DataService = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("DataService"))
-local targetKg = 10
-local autoHoneyMachine = false
-
--- 🔎 Find pollinated fruits
-local function findPollinatedFruits()
-    local fruits = {}
-    for _, tool in pairs(Backpack:GetChildren()) do
-        if tool:IsA("Tool") and tool.Name:find("Pollinated") then
-            local weightStr = tool.Name:match("%[(%d+%.?%d*)kg%]")
-            if weightStr then
-                local weight = tonumber(weightStr)
-                if weight then
-                    table.insert(fruits, {tool = tool, kg = weight})
-                end
-            end
-        end
-    end
-    return fruits
-end
-
--- 📦 Build a fruit combo close to target weight
-local function buildFruitCombo(fruits, target)
-    table.sort(fruits, function(a, b) return a.kg > b.kg end)
-    local combo, total = {}, 0
-    for _, fruit in ipairs(fruits) do
-        if total < target then
-            table.insert(combo, fruit)
-            total = total + fruit.kg
-        end
-    end
-    return (#combo > 0 and combo) or nil
-end
-
--- 📊 Get Honey Machine data
-local function getMachineData()
-    local data = DataService:GetData()
-    return data and data.HoneyMachine or {}
-end
-
--- ⏳ Wait until honey is ready to collect
-local function waitForHoney()
-    while autoHoneyMachine do
-        local data = getMachineData()
-        if not data.IsRunning and (data.HoneyStored or 0) >= 10 then
-            return true
-        end
-        task.wait(1)
-    end
-    return false
-end
-
--- 🔁 Main Loop
-local function autoHoneyMachineLoop()
-    while autoHoneyMachine do
-        local machineData = getMachineData()
-        local plantWeight = machineData.PlantWeight or 0
-        local isRunning = machineData.IsRunning
-        local honeyStored = machineData.HoneyStored or 0
-
-        print(string.format("[AutoHoneyMachine] 🌿 Weight: %.2f kg | 🔁 Running: %s | 🍯 Honey: %s",
-            plantWeight, tostring(isRunning), tostring(honeyStored)))
-
-        if not isRunning and plantWeight < targetKg then
-            -- Step 1: Add fruit
-            local fruits = findPollinatedFruits()
-            local combo = buildFruitCombo(fruits, targetKg - plantWeight)
-
-            if combo then
-               for _, fruit in ipairs(combo) do
-    if not autoHoneyMachine then return end
-    fruit.tool.Parent = Character
-    task.wait(0.1) -- wait for the tool to register in Character
-
-    -- Interact with the Honey Machine immediately after equipping each fruit
-    pcall(function()
-        ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("HoneyMachineService_RE"):FireServer("MachineInteract")
-    end)
-
-    task.wait(1.2) -- wait a bit for machine to update
-end
-
-                pcall(function()
-                    ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("HoneyMachineService_RE"):FireServer("MachineInteract")
-                end)
-
-                task.wait(1)
-            else
-                warn("[AutoHoneyMachine] ❌ Not enough fruit to reach target, waiting for more...")
-                task.wait(3)  -- wait a bit and then try again without stopping the loop
-            end
-
-        elseif isRunning then
-    print("[AutoHoneyMachine] ⏳ Waiting for machine to finish...")
-    repeat
-        task.wait(1)
-        machineData = getMachineData()
-    until not machineData.IsRunning or not autoHoneyMachine
-
-    -- ✅ Refresh machineData and honeyStored
-    machineData = getMachineData()
-    honeyStored = machineData.HoneyStored or 0
-
-        elseif not isRunning and honeyStored < 10 then
-            -- Step 3: Wait for honey to be ready
-            print("[AutoHoneyMachine] ⏳ Waiting for honey to finish...")
-            waitForHoney()
-
-        elseif not isRunning and honeyStored >= 10 then
-            -- Step 4: Collect honey
-            print("[AutoHoneyMachine] 🍯 Collecting honey...")
-            pcall(function()
-                ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("HoneyMachineService_RE"):FireServer("MachineInteract")
-            end)
-            task.wait(1)
-        end
-
-        task.wait(1)
-    end
-    print("[AutoHoneyMachine] 🔁 Loop exited.")
-end
-
--- 🟢 Connect Toggle Button
-autoHoneyMachineToggle[2].MouseButton1Click:Connect(function()
-    autoHoneyMachine = not autoHoneyMachine
-    autoHoneyMachineToggle[3].Visible = autoHoneyMachine
-    if autoHoneyMachine then
-        task.spawn(autoHoneyMachineLoop)
     end
 end)
 
