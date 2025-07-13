@@ -950,41 +950,40 @@ buySelectedEventShopToggle[2].MouseButton1Click:Connect(function()
     end
 end)
 
--- === Buy Selected Pet Eggs with collapsible list ===
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+-- === Manual list of eggs ===
 local petEggList = {
     "Common Egg",
     "Common Summer Egg",
     "Rare Summer Egg",
     "Mythical Egg",
     "Paradise Egg",
-    "Bee Egg",
-    "Bug Egg"
+    "Bee Egg"
 }
 
-local buySelectedPetEggsToggle = createToggleButton(MerchantsTabFrame, "Buy Selected Pet Eggs", 170)
-
-local expandPetEggsBtn = Instance.new("TextButton")
-expandPetEggsBtn.Name = "ExpandPetEggsBtn"
-expandPetEggsBtn.Parent = buySelectedPetEggsToggle[1]
-expandPetEggsBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-expandPetEggsBtn.BorderSizePixel = 0
-expandPetEggsBtn.Size = UDim2.new(0, 32, 0, 28)
-
-if isMobile then
-    expandPetEggsBtn.Position = UDim2.new(1, -105, 0, 6)
-else
-    expandPetEggsBtn.Position = UDim2.new(1, -75, 0, 6)
-end
-
-expandPetEggsBtn.Font = Enum.Font.SourceSansBold
-expandPetEggsBtn.TextSize = 26
-expandPetEggsBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
-expandPetEggsBtn.Text = "▶"
-expandPetEggsBtn.AutoButtonColor = false
-
+-- === Toggles & State ===
+local petEggToggles = {}
+local buySelectedPetEggs = false
 local petEggsListVisible = false
 
+-- === UI Toggle Button ===
+local buySelectedPetEggsToggle = createToggleButton(MerchantsTabFrame, "Buy Selected Pet Eggs", 170)
+
+local expandBtn = Instance.new("TextButton")
+expandBtn.Name = "ExpandPetEggsBtn"
+expandBtn.Parent = buySelectedPetEggsToggle[1]
+expandBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+expandBtn.BorderSizePixel = 0
+expandBtn.Size = UDim2.new(0, 32, 0, 28)
+expandBtn.Position = isMobile and UDim2.new(1, -105, 0, 6) or UDim2.new(1, -75, 0, 6)
+expandBtn.Font = Enum.Font.SourceSansBold
+expandBtn.TextSize = 26
+expandBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+expandBtn.Text = "▶"
+expandBtn.AutoButtonColor = false
+
+-- === Scrolling Frame ===
 local PetEggSelectionFrame = Instance.new("ScrollingFrame")
 PetEggSelectionFrame.Name = "PetEggSelectionFrame"
 PetEggSelectionFrame.Parent = MerchantsTabFrame
@@ -993,57 +992,43 @@ PetEggSelectionFrame.ScrollBarThickness = 8
 PetEggSelectionFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 PetEggSelectionFrame.Visible = false
 
--- Function to calculate max height and Y position for mobile (flush positioning)
-local function updatePetEggFrameMobile()
-    local toggleAbsPos = buySelectedPetEggsToggle[1].AbsolutePosition
-    local toggleAbsSize = buySelectedPetEggsToggle[1].AbsoluteSize
-    local screenHeight = workspace.CurrentCamera.ViewportSize.Y
-    local margin = 40
-
-    local newY = toggleAbsPos.Y + toggleAbsSize.Y  -- flush with toggle
-    local maxHeight = screenHeight - newY - margin
-    if maxHeight < 100 then maxHeight = 100 end
-
-    PetEggSelectionFrame.Position = UDim2.new(0, 8, 0, newY)
-    PetEggSelectionFrame.Size = UDim2.new(0, 380, 0, maxHeight)
-end
-
 if isMobile then
-    task.defer(updatePetEggFrameMobile)
-    buySelectedPetEggsToggle[1]:GetPropertyChangedSignal("AbsolutePosition"):Connect(updatePetEggFrameMobile)
+    local function updateMobileFrame()
+        local pos = buySelectedPetEggsToggle[1].AbsolutePosition
+        local size = buySelectedPetEggsToggle[1].AbsoluteSize
+        local screenY = workspace.CurrentCamera.ViewportSize.Y
+        local margin = 40
+        local newY = pos.Y + size.Y
+        local maxHeight = math.max(100, screenY - newY - margin)
+        PetEggSelectionFrame.Position = UDim2.new(0, 8, 0, newY)
+        PetEggSelectionFrame.Size = UDim2.new(0, 380, 0, maxHeight)
+    end
+    task.defer(updateMobileFrame)
+    buySelectedPetEggsToggle[1]:GetPropertyChangedSignal("AbsolutePosition"):Connect(updateMobileFrame)
 else
     PetEggSelectionFrame.Position = UDim2.new(0, 8, 0, 255)
     PetEggSelectionFrame.Size = UDim2.new(0, 540, 0, 220)
 end
 
-local petEggToggles = {}
-
+-- === Egg Toggle Creator ===
 local function createPetEggToggle(eggName, yPos)
     local container = Instance.new("Frame")
-    container.Name = eggName .. "Container"
     container.Parent = PetEggSelectionFrame
     container.BackgroundTransparency = 1
-
-    local containerWidthOffset = isMobile and -30 or -15
-    local labelWidthOffset = isMobile and -60 or -40
-    local togglePosition = isMobile and UDim2.new(1, -65, 0, 6) or UDim2.new(1, -35, 0, 6)
-
-    container.Size = UDim2.new(1, containerWidthOffset, 0, 38)
+    container.Size = UDim2.new(1, isMobile and -30 or -15, 0, 38)
     container.Position = UDim2.new(0, 5, 0, yPos)
 
     local label = Instance.new("TextLabel")
-    label.Name = "Label"
     label.Parent = container
     label.BackgroundTransparency = 1
-    label.Position = UDim2.new(0, 0, 0, 0)
-    label.Size = UDim2.new(1, labelWidthOffset, 1, 0)
+    label.Size = UDim2.new(1, isMobile and -60 or -40, 1, 0)
     label.Font = Enum.Font.SourceSans
     label.TextSize = 22
     label.TextColor3 = Color3.fromRGB(255, 255, 255)
-    label.Text = eggName
     label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Text = eggName
 
-    local toggle, light = createToggleSquare(container, togglePosition)
+    local toggle, light = createToggleSquare(container, isMobile and UDim2.new(1, -65, 0, 6) or UDim2.new(1, -35, 0, 6))
 
     toggle.MouseButton1Click:Connect(function()
         light.Visible = not light.Visible
@@ -1059,10 +1044,11 @@ end
 
 PetEggSelectionFrame.CanvasSize = UDim2.new(0, 0, 0, #petEggList * 40)
 
-expandPetEggsBtn.MouseButton1Click:Connect(function()
+-- === Expand Button Logic ===
+expandBtn.MouseButton1Click:Connect(function()
     petEggsListVisible = not petEggsListVisible
     PetEggSelectionFrame.Visible = petEggsListVisible
-    expandPetEggsBtn.Text = petEggsListVisible and "▼" or "▶"
+    expandBtn.Text = petEggsListVisible and "▼" or "▶"
 
     for _, child in pairs(MerchantsTabFrame:GetChildren()) do
         if child:IsA("Frame") and child ~= buySelectedPetEggsToggle[1] and child ~= PetEggSelectionFrame then
@@ -1071,38 +1057,27 @@ expandPetEggsBtn.MouseButton1Click:Connect(function()
     end
 end)
 
-local function getEggNameToStallIndicesMap()
-    local map = {}
-    local validCount = 0
-    local eggLocations = workspace.NPCS["Pet Stand"].EggLocations:GetChildren()
-    for _, egg in ipairs(eggLocations) do
-        if egg.Name ~= "Location" then
-            validCount += 1
-            map[egg.Name] = map[egg.Name] or {}
-            table.insert(map[egg.Name], validCount)
-        end
-    end
-    return map
+-- === Buy Function Using Args ===
+local function buyEggByName(eggName)
+    local args = { eggName }
+    ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("BuyPetEgg"):FireServer(unpack(args))
 end
 
-local buySelectedPetEggs = false
+-- === Toggle Logic ===
 buySelectedPetEggsToggle[2].MouseButton1Click:Connect(function()
     buySelectedPetEggs = not buySelectedPetEggs
     buySelectedPetEggsToggle[3].Visible = buySelectedPetEggs
+
     if buySelectedPetEggs then
         task.spawn(function()
             while buySelectedPetEggs do
-                local eggMap = getEggNameToStallIndicesMap()
                 for eggName, enabled in pairs(petEggToggles) do
                     if enabled then
-                        local stalls = eggMap[eggName]
-                        if stalls then
-                            for _, index in ipairs(stalls) do
-                                pcall(function()
-                                    ReplicatedStorage.GameEvents.BuyPetEgg:FireServer(index)
-                                end)
-                                task.wait(0.3)
-                            end
+                        for i = 1, 3 do -- how many times to buy each egg per cycle
+                            pcall(function()
+                                buyEggByName(eggName)
+                            end)
+                            task.wait(0.3)
                         end
                     end
                 end
@@ -1111,6 +1086,7 @@ buySelectedPetEggsToggle[2].MouseButton1Click:Connect(function()
         end)
     end
 end)
+
 
 
 -- Toggle GUI Button
