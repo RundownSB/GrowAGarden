@@ -951,6 +951,7 @@ expandHoneyShopBtn.AutoButtonColor = false
 local honeyShopListVisible = false
 
 local HoneyShopSelectionFrame = Instance.new("ScrollingFrame")
+HoneyShopSelectionFrame.ScrollingEnabled = true
 HoneyShopSelectionFrame.Name = "HoneyShopSelectionFrame"
 HoneyShopSelectionFrame.Parent = MerchantsTabFrame
 HoneyShopSelectionFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
@@ -960,18 +961,21 @@ HoneyShopSelectionFrame.Visible = false
 
 if isMobile then
     local function updateSize()
-    local screenHeight = workspace.CurrentCamera.ViewportSize.Y
-    local posY = buyFromHoneyShopToggle[1].AbsolutePosition.Y + 32
-    local maxHeight = math.max(100, screenHeight - posY - 40)
-    HoneyShopSelectionFrame.Position = UDim2.new(0, 8, 0, posY)
-    HoneyShopSelectionFrame.Size = UDim2.new(0, 380, 0, maxHeight)
-end
+        local screenHeight = workspace.CurrentCamera.ViewportSize.Y
+        local posY = buyFromHoneyShopToggle[1].AbsolutePosition.Y + 32
+        local maxHeight = math.min(screenHeight - posY - 40, (#honeyShopList * 40) - 10)
+
+        HoneyShopSelectionFrame.Position = UDim2.new(0, 8, 0, posY)
+        HoneyShopSelectionFrame.Size = UDim2.new(0, 380, 0, maxHeight)
+    end
+
     task.delay(0.1, updateSize)
     buyFromHoneyShopToggle[1]:GetPropertyChangedSignal("AbsolutePosition"):Connect(updateSize)
 else
     HoneyShopSelectionFrame.Position = UDim2.new(0, 8, 0, 130)
     HoneyShopSelectionFrame.Size = UDim2.new(0, 540, 0, 220)
 end
+
 
 local honeyShopToggles = {}
 
