@@ -1057,7 +1057,7 @@ end)
 
 -- === Auto Dino Machine ===
 
-local autoDinoMachineToggle = createToggleButton(MainTabFrame, "Auto Dino Machine", 250)
+local autoDinoMachineToggle = createToggleButton(MainTabFrame, "Auto Dino Machine", 90)
 
 local autoDinoMachine = false
 
