@@ -846,7 +846,7 @@ if isMobile then
     task.defer(updateMobileFrame)
     buySelectedPetEggsToggle[1]:GetPropertyChangedSignal("AbsolutePosition"):Connect(updateMobileFrame)
 else
-    PetEggSelectionFrame.Position = UDim2.new(0, 8, 0, 255)
+    PetEggSelectionFrame.Position = UDim2.new(0, 8, 0, 215)
     PetEggSelectionFrame.Size = UDim2.new(0, 540, 0, 220)
 end
 
