@@ -227,7 +227,8 @@ local seedList = {
     "Beanstalk",
     "Ember Lily",
     "Sugar Apple",
-    "Burning Bud"
+    "Burning Bud",
+    "Giant Pinecone"
 }
 
 -- Tab buttons mapping
