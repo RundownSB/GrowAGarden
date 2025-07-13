@@ -927,7 +927,129 @@ buySelectedPetEggsToggle[2].MouseButton1Click:Connect(function()
     end
 end)
 
+-- === Buy from Honey Shop with collapsible list ===
 
+local honeyShopList = {
+    "Flower Seed Pack", "Honey Sprinkler", "Bee Egg", "Bee Crate", "Honey Crafters Crate"
+}
+
+local buyFromHoneyShopToggle = createToggleButton(MerchantsTabFrame, "Honey Shop", 170)
+
+local expandHoneyShopBtn = Instance.new("TextButton")
+expandHoneyShopBtn.Name = "ExpandHoneyShopBtn"
+expandHoneyShopBtn.Parent = buyFromHoneyShopToggle[1]
+expandHoneyShopBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+expandHoneyShopBtn.BorderSizePixel = 0
+expandHoneyShopBtn.Size = UDim2.new(0, 32, 0, 28)
+expandHoneyShopBtn.Position = isMobile and UDim2.new(1, -105, 0, 6) or UDim2.new(1, -75, 0, 6)
+expandHoneyShopBtn.Font = Enum.Font.SourceSansBold
+expandHoneyShopBtn.TextSize = 26
+expandHoneyShopBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+expandHoneyShopBtn.Text = "▶"
+expandHoneyShopBtn.AutoButtonColor = false
+
+local honeyShopListVisible = false
+
+local HoneyShopSelectionFrame = Instance.new("ScrollingFrame")
+HoneyShopSelectionFrame.Name = "HoneyShopSelectionFrame"
+HoneyShopSelectionFrame.Parent = MerchantsTabFrame
+HoneyShopSelectionFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+HoneyShopSelectionFrame.ScrollBarThickness = 8
+HoneyShopSelectionFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+HoneyShopSelectionFrame.Visible = false
+
+if isMobile then
+    local function updateSize()
+        local screenHeight = workspace.CurrentCamera.ViewportSize.Y
+        local posY = buyFromHoneyShopToggle[1].AbsolutePosition.Y + buyFromHoneyShopToggle[1].AbsoluteSize.Y
+        local maxHeight = math.max(100, screenHeight - posY - 40)
+        HoneyShopSelectionFrame.Position = UDim2.new(0, 8, 0, posY)
+        HoneyShopSelectionFrame.Size = UDim2.new(0, 380, 0, maxHeight)
+    end
+    task.defer(updateSize)
+    buyFromHoneyShopToggle[1]:GetPropertyChangedSignal("AbsolutePosition"):Connect(updateSize)
+else
+    HoneyShopSelectionFrame.Position = UDim2.new(0, 8, 0, 255)
+    HoneyShopSelectionFrame.Size = UDim2.new(0, 540, 0, 220)
+end
+
+local honeyShopToggles = {}
+
+local function createHoneyShopToggle(itemName, yPos)
+    local container = Instance.new("Frame")
+    container.Name = itemName .. "Container"
+    container.Parent = HoneyShopSelectionFrame
+    container.BackgroundTransparency = 1
+
+    local containerWidthOffset = isMobile and -30 or -15
+    local labelWidthOffset = isMobile and -60 or -40
+    local togglePosition = isMobile and UDim2.new(1, -65, 0, 6) or UDim2.new(1, -35, 0, 6)
+
+    container.Size = UDim2.new(1, containerWidthOffset, 0, 38)
+    container.Position = UDim2.new(0, 5, 0, yPos)
+
+    local label = Instance.new("TextLabel")
+    label.Name = "Label"
+    label.Parent = container
+    label.BackgroundTransparency = 1
+    label.Position = UDim2.new(0, 0, 0, 0)
+    label.Size = UDim2.new(1, labelWidthOffset, 1, 0)
+    label.Font = Enum.Font.SourceSans
+    label.TextSize = 22
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.Text = itemName
+    label.TextXAlignment = Enum.TextXAlignment.Left
+
+    local toggle, light = createToggleSquare(container, togglePosition)
+
+    toggle.MouseButton1Click:Connect(function()
+        light.Visible = not light.Visible
+        honeyShopToggles[itemName] = light.Visible
+    end)
+
+    honeyShopToggles[itemName] = false
+end
+
+for i, itemName in ipairs(honeyShopList) do
+    createHoneyShopToggle(itemName, (i - 1) * 40)
+end
+
+HoneyShopSelectionFrame.CanvasSize = UDim2.new(0, 0, 0, #honeyShopList * 40)
+
+expandHoneyShopBtn.MouseButton1Click:Connect(function()
+    honeyShopListVisible = not honeyShopListVisible
+    HoneyShopSelectionFrame.Visible = honeyShopListVisible
+    expandHoneyShopBtn.Text = honeyShopListVisible and "▼" or "▶"
+
+    for _, child in pairs(MerchantsTabFrame:GetChildren()) do
+        if child:IsA("Frame") and child ~= buyFromHoneyShopToggle[1] and child ~= HoneyShopSelectionFrame then
+            child.Visible = not honeyShopListVisible
+        end
+    end
+end)
+
+local buyHoneyItems = false
+buyFromHoneyShopToggle[2].MouseButton1Click:Connect(function()
+    buyHoneyItems = not buyHoneyItems
+    buyFromHoneyShopToggle[3].Visible = buyHoneyItems
+
+    if buyHoneyItems then
+        task.spawn(function()
+            while buyHoneyItems do
+                for itemName, enabled in pairs(honeyShopToggles) do
+                    if enabled then
+                        pcall(function()
+                            local args = { itemName }
+                            ReplicatedStorage.GameEvents.BuyTravelingMerchantShopStock:FireServer(unpack(args))
+                        end)
+                        task.wait(0.3)
+                    end
+                end
+                task.wait(1)
+            end
+        end)
+    end
+end)
 
 -- Toggle GUI Button
 local toggleGuiButton = Instance.new("TextButton")
