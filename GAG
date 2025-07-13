@@ -960,12 +960,12 @@ HoneyShopSelectionFrame.Visible = false
 
 if isMobile then
     local function updateSize()
-        local screenHeight = workspace.CurrentCamera.ViewportSize.Y
-        local posY = buyFromHoneyShopToggle[1].AbsolutePosition.Y + buyFromHoneyShopToggle[1].AbsoluteSize.Y
-        local maxHeight = math.max(100, screenHeight - posY - 40)
-        HoneyShopSelectionFrame.Position = UDim2.new(0, 8, 0, posY)
-        HoneyShopSelectionFrame.Size = UDim2.new(0, 380, 0, maxHeight)
-    end
+    local screenHeight = workspace.CurrentCamera.ViewportSize.Y
+    local posY = buyFromHoneyShopToggle[1].AbsolutePosition.Y + 32
+    local maxHeight = math.max(100, screenHeight - posY - 40)
+    HoneyShopSelectionFrame.Position = UDim2.new(0, 8, 0, posY)
+    HoneyShopSelectionFrame.Size = UDim2.new(0, 380, 0, maxHeight)
+end
     task.defer(updateSize)
     buyFromHoneyShopToggle[1]:GetPropertyChangedSignal("AbsolutePosition"):Connect(updateSize)
 else
