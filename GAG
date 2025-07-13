@@ -933,7 +933,7 @@ local honeyShopList = {
     "Flower Seed Pack", "Honey Sprinkler", "Bee Egg", "Bee Crate", "Honey Crafters Crate"
 }
 
-local buyFromHoneyShopToggle = createToggleButton(MerchantsTabFrame, "Honey Shop", 170)
+local buyFromHoneyShopToggle = createToggleButton(MerchantsTabFrame, "Honey Shop", 85)
 
 local expandHoneyShopBtn = Instance.new("TextButton")
 expandHoneyShopBtn.Name = "ExpandHoneyShopBtn"
