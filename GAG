@@ -1057,7 +1057,7 @@ end)
 
 -- === Auto Dino Machine ===
 
-local autoDinoMachineToggle = createToggleButton(MainTabFrame, "Auto Dino Machine", 90)
+local autoDinoMachineToggle = createToggleButton(MainTabFrame, "Auto Dino Machine", 250)
 
 local autoDinoMachine = false
 
@@ -1109,10 +1109,10 @@ autoDinoMachineToggle[2].MouseButton1Click:Connect(function()
                                     -- 🔁 Interact with Dino Machine
                                     local args = { "MachineInteract" }
                                     game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("DinoMachineService_RE"):FireServer(unpack(args))
+                                    print("Submitted to Dino Machine.")
 
-                                    -- ⏱️ Wait 24 minutes, 10 seconds
-                                    print("Waiting 24m10s before claiming reward...")
-                                    for i = 1, 1450 do
+                                    -- ⏱️ Wait 24 minutes, 3 seconds (1443s)
+                                    for i = 1, 1443 do
                                         if not autoDinoMachine then return end
                                         task.wait(1)
                                     end
@@ -1121,6 +1121,12 @@ autoDinoMachineToggle[2].MouseButton1Click:Connect(function()
                                     local claimArgs = { "ClaimReward" }
                                     game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("DinoMachineService_RE"):FireServer(unpack(claimArgs))
                                     print("Claimed Dino Machine reward.")
+
+                                    -- 🕒 Wait 3 seconds before next loop
+                                    for i = 1, 3 do
+                                        if not autoDinoMachine then return end
+                                        task.wait(1)
+                                    end
 
                                     break
                                 end
@@ -1138,6 +1144,7 @@ autoDinoMachineToggle[2].MouseButton1Click:Connect(function()
         end)
     end
 end)
+
 
 -- Toggle GUI Button
 local toggleGuiButton = Instance.new("TextButton")
