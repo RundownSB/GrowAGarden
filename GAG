@@ -1145,6 +1145,132 @@ autoDinoMachineToggle[2].MouseButton1Click:Connect(function()
     end
 end)
 
+-- === Buy from Sky Shop with collapsible list ===
+
+local skyShopList = {
+    "Night Staff",
+    "Star Caller",
+    "Mutation Spray Cloudtouched"
+}
+
+local buyFromSkyShopToggle = createToggleButton(MerchantsTabFrame, "Sky Shop", 215) -- Adjust Y if needed
+
+local expandSkyShopBtn = Instance.new("TextButton")
+expandSkyShopBtn.Name = "ExpandSkyShopBtn"
+expandSkyShopBtn.Parent = buyFromSkyShopToggle[1]
+expandSkyShopBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+expandSkyShopBtn.BorderSizePixel = 0
+expandSkyShopBtn.Size = UDim2.new(0, 32, 0, 28)
+expandSkyShopBtn.Position = isMobile and UDim2.new(1, -105, 0, 6) or UDim2.new(1, -75, 0, 6)
+expandSkyShopBtn.Font = Enum.Font.SourceSansBold
+expandSkyShopBtn.TextSize = 26
+expandSkyShopBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+expandSkyShopBtn.Text = "▶"
+expandSkyShopBtn.AutoButtonColor = false
+
+local skyShopListVisible = false
+
+local SkyShopSelectionFrame = Instance.new("ScrollingFrame")
+SkyShopSelectionFrame.Name = "SkyShopSelectionFrame"
+SkyShopSelectionFrame.Parent = MerchantsTabFrame
+SkyShopSelectionFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+SkyShopSelectionFrame.ScrollBarThickness = 8
+SkyShopSelectionFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+SkyShopSelectionFrame.Visible = false
+
+if isMobile then
+    local function updateSize()
+        local screenHeight = workspace.CurrentCamera.ViewportSize.Y
+        local posY = buyFromSkyShopToggle[1].AbsolutePosition.Y + 32
+        local maxHeight = math.max(100, screenHeight - posY - 40)
+        SkyShopSelectionFrame.Position = UDim2.new(0, 8, 0, posY)
+        SkyShopSelectionFrame.Size = UDim2.new(0, 380, 0, maxHeight)
+    end
+    task.delay(0.1, updateSize)
+    buyFromSkyShopToggle[1]:GetPropertyChangedSignal("AbsolutePosition"):Connect(updateSize)
+else
+    SkyShopSelectionFrame.Position = UDim2.new(0, 8, 0, 335)
+    SkyShopSelectionFrame.Size = UDim2.new(0, 540, 0, 150)
+end
+
+local skyShopToggles = {}
+
+local function createSkyShopToggle(itemName, yPos)
+    local container = Instance.new("Frame")
+    container.Name = itemName .. "Container"
+    container.Parent = SkyShopSelectionFrame
+    container.BackgroundTransparency = 1
+
+    local containerWidthOffset = isMobile and -30 or -15
+    local labelWidthOffset = isMobile and -60 or -40
+    local togglePosition = isMobile and UDim2.new(1, -65, 0, 6) or UDim2.new(1, -35, 0, 6)
+
+    container.Size = UDim2.new(1, containerWidthOffset, 0, 38)
+    container.Position = UDim2.new(0, 5, 0, yPos)
+
+    local label = Instance.new("TextLabel")
+    label.Name = "Label"
+    label.Parent = container
+    label.BackgroundTransparency = 1
+    label.Position = UDim2.new(0, 0, 0, 0)
+    label.Size = UDim2.new(1, labelWidthOffset, 1, 0)
+    label.Font = Enum.Font.SourceSans
+    label.TextSize = 22
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.Text = itemName
+    label.TextXAlignment = Enum.TextXAlignment.Left
+
+    local toggle, light = createToggleSquare(container, togglePosition)
+
+    toggle.MouseButton1Click:Connect(function()
+        light.Visible = not light.Visible
+        skyShopToggles[itemName] = light.Visible
+    end)
+
+    skyShopToggles[itemName] = false
+end
+
+for i, itemName in ipairs(skyShopList) do
+    createSkyShopToggle(itemName, (i - 1) * 40)
+end
+
+SkyShopSelectionFrame.CanvasSize = UDim2.new(0, 0, 0, #skyShopList * 40)
+
+expandSkyShopBtn.MouseButton1Click:Connect(function()
+    skyShopListVisible = not skyShopListVisible
+    SkyShopSelectionFrame.Visible = skyShopListVisible
+    expandSkyShopBtn.Text = skyShopListVisible and "▼" or "▶"
+
+    for _, child in pairs(MerchantsTabFrame:GetChildren()) do
+        if child:IsA("Frame") and child ~= buyFromSkyShopToggle[1] and child ~= SkyShopSelectionFrame then
+            child.Visible = not skyShopListVisible
+        end
+    end
+end)
+
+local buySkyItems = false
+buyFromSkyShopToggle[2].MouseButton1Click:Connect(function()
+    buySkyItems = not buySkyItems
+    buyFromSkyShopToggle[3].Visible = buySkyItems
+
+    if buySkyItems then
+        task.spawn(function()
+            while buySkyItems do
+                for itemName, enabled in pairs(skyShopToggles) do
+                    if enabled then
+                        pcall(function()
+                            local args = { itemName }
+                            game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("BuyTravelingMerchantShopStock"):FireServer(unpack(args))
+                        end)
+                        task.wait(0.3)
+                    end
+                end
+                task.wait(1)
+            end
+        end)
+    end
+end)
+
 
 -- Toggle GUI Button
 local toggleGuiButton = Instance.new("TextButton")
